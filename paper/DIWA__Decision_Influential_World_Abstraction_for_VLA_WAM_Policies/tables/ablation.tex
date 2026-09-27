@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\caption{Evaluated DIWA variants. Standard success is the four-platform macro-average; OOD success and CF decision accuracy are separate metrics. Rates are percentages; latency is in milliseconds. These point estimates do not establish equal retained counts across variants.}
+\label{tab:ablation}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Variant & Standard & OOD & CF accuracy & Latency\\
+\midrule
+DIWA & 73.5 & 75.8 & 81.6 & 89\\
+Without influence estimator & 68.2 & 66.1 & 71.9 & 142\\
+Without cross-episode swaps & 71.4 & 70.2 & 72.8 & 88\\
+Without regret geometry & 69.3 & 68.2 & 70.6 & 89\\
+Dense imagination & 73.4 & 75.5 & 81.5 & 213\\
+Uniform Top-$K$ & 70.6 & 68.9 & 74.3 & 88\\
+\bottomrule
+\end{tabular}
+\end{table}

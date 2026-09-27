@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-26",
+  "asset": "paper/figures/architecture.jpg",
+  "source": "User-supplied method overview image",
+  "sha256": "4124a19a7985006d02a4d61ba3fa1f519e7def4a67f1e4a8dbc3bb1cc73fc082",
+  "pixel_dimensions": [
+    3300,
+    2460
+  ],
+  "mode": "RGB",
+  "treatment": "Original JPEG copied byte-for-byte; embedded with preserved aspect ratio; no pixel editing.",
+  "panels": {
+    "a": "Online selection before future decoding",
+    "b": "Intervention supervision for influence scoring",
+    "c": "Candidate-return regret geometry"
+  },
+  "interpretation": "Token grids and return/regret bars are schematic illustrations, not additional experimental measurements."
+}

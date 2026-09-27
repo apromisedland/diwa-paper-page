@@ -1,0 +1,462 @@
+\documentclass{article}
+\usepackage{iclr2027_conference,times}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{graphicx,booktabs,tabularx,multirow}
+\usepackage{algorithm,algorithmic}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{xurl}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\newcommand{\method}{DIWA}
+\newcommand{\sg}{\operatorname{sg}}
+\newcommand{\TopK}{\operatorname{TopK}}
+\newcommand{\Huber}{\operatorname{Huber}}
+\newcommand{\RMS}{\operatorname{RMS}}
+\newcommand{\softplus}{\operatorname{softplus}}
+\newcommand{\E}{\mathbb{E}}
+\newtheorem{proposition}{Proposition}
+\title{DIWA: Decision-Influential\\World Abstraction for VLA-WAM Policies}
+\author{Anonymous authors}
+% Keep anonymous review mode. Do not enable \iclrfinalcopy for submission.
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Predicting future observations can improve robot decision making, but a controller need not model every visible change with equal fidelity. We introduce Decision-Influential World Abstraction (\method), a framework that allocates future modeling capacity according to its effect on action generation. A lightweight estimator ranks object--time queries before an action-conditioned world decoder expands them. Its supervision measures changes in action responses, value estimates, and task progress under latent interventions, with shared randomness for stochastic action heads. A complementary regret geometry organizes representations by the relative returns of aligned candidate action rules. During inference, only selected future queries are decoded, avoiding dense future generation. Across LIBERO, RoboTwin, RoboCasa, and real-robot manipulation, \method{} achieves 73.5\% aggregate success, improving over DreamVLA by 5.6 percentage points. The out-of-distribution evaluation yields 75.8\% success, a 10.6-point improvement. Mean inference latency is 89\,ms, compared with 213\,ms for dense imagination and 241\,ms for WorldVLA. Three-seed simulation results, 300 physical trials per method, budget sweeps, and intervention diagnostics distinguish the roles of influence supervision, regret geometry, and selective computation. These results support using decision sensitivity to determine which future information a robot policy should compute.
+\end{abstract}
+
+\section{Introduction}
+Vision-language-action (VLA) models connect visual perception and language understanding to robot control, enabling broadly pretrained representations to be adapted to manipulation tasks \citep{zitkovich2023rt2,kim2025openvla,ghosh2024octo}. However, understanding the current scene does not always determine the next action. An apparently similar gripper pose can require closing, retracting, or maintaining contact depending on object state and task progress. Anticipating action consequences is therefore useful, particularly around contact transitions and in tasks with several dependent stages.
+
+World models offer a route to such anticipation. Video-conditioned policies and action world models predict future observations, while DreamVLA predicts compact dynamic, spatial, and semantic information \citep{wu2024gr1,zhou2024robodreamer,cen2025worldvla,zhang2025dreamvla}. Nevertheless, predictive detail and decision utility are different objectives. A model may spend substantial computation on a moving background without improving grasp selection. Conversely, a small change in whether an object is supported or already grasped can substantially change the appropriate action. The computational question is therefore not only how to compress a future representation, but also which parts of that representation deserve to be computed for the current decision.
+
+We study this question through \emph{decision influence}: the sensitivity of a policy's action response and decision heads to a specified intervention on an imagined variable. We propose \method{}, which represents candidate futures as object--time queries and estimates their influence from the current context and a proposed action chunk. Crucially, scoring precedes future decoding. A selector then passes a subset of the queries to an action-conditioned world model. The policy combines the resulting imagined tokens with current-state context to produce the action chunk.
+
+The influence estimator is trained using dense reference futures and sampled latent interventions. Replacing one token with a mask or a same-task, cross-episode token provides a reference--intervention pair. Changes in local action moments, predicted value, and predicted progress provide supervision for a cheaper estimator that does not need to generate those interventions at test time. For diffusion and flow heads, the paired responses use the same noise and time samples, reducing variation unrelated to the intervention. This construction measures dependence inside the learned policy; it does not, on its own, identify a causal effect in the physical environment.
+
+Selection also needs an appropriate representation. Two states can look different yet favor the same actions, while visually similar states can reverse action preferences. We therefore regularize latent distances using \emph{regret vectors} computed from measured returns of a consistently indexed candidate bank. Regret removes state-dependent value offsets and retains the relative cost of choosing each candidate. It complements influence supervision: influence determines where to allocate computation, and regret geometry constrains the decision information that the representation should preserve.
+
+Our contributions are threefold. First, we develop an object--time selection mechanism that predicts influence before future decoding and supports a state-dependent compute budget. Second, we couple intervention-based influence supervision with measured-return regret geometry and characterize the resulting finite-candidate notion of decision equivalence. Third, we evaluate success, robustness, and inference cost on complementary manipulation settings. \method{} improves aggregate success over DreamVLA by 5.6 points while reducing mean latency by 58.2\% relative to its dense-imagination variant. Independent intervention diagnostics further connect the learned influence ranking and latent geometry to measured decision consequences.
+
+\section{Related work}
+\paragraph{VLA policies and action generation.}
+RT-2 transfers visual-language knowledge to action generation; OpenVLA and Octo provide open generalist robot policies \citep{zitkovich2023rt2,kim2025openvla,ghosh2024octo}. Diffusion Policy and $\pi_0$ use denoising and flow-based action generation, respectively \citep{chi2023diffusion,black2025pi0}. \method{} selects the future latent information supplied to an action head. Paired response probes accommodate different generators, although the experiments do not establish equal benefits across action-head families.
+
+\paragraph{Predictive models for control.}
+GR-1 combines future-image and action prediction, RoboDreamer learns compositional video world models, and WorldVLA unifies image and action generation \citep{wu2024gr1,zhou2024robodreamer,cen2025worldvla}. DreamVLA predicts compact world knowledge and supplies our backbone \citep{zhang2025dreamvla}. MuZero and TD-MPC2 further motivate control models that avoid observation reconstruction \citep{schrittwieser2020muzero,hansen2024tdmpc2}. We study allocation within a predictive policy, selecting object--time queries before their future representations are decoded.
+
+\paragraph{Decision-relevant abstraction and selective computation.}
+Value equivalence and bisimulation motivate representations that preserve decision-relevant information \citep{grimm2020value,zhang2021invariant}; our finite-candidate regret construction provides a narrower guarantee. Slot Attention supplies object representations, and DynamicViT learns visual token sparsification \citep{locatello2020slot,rao2021dynamicvit}. Recent VLA methods address action-aware efficiency directly: SpecPrune-VLA combines attention history with an action-aware pruning controller; LightVLA learns differentiable visual-token selection; and VLA-Pruner combines semantic relevance with temporally estimated action relevance \citep{wang2026specprune,jiang2025lightvla,liu2026vlapruner}. These approaches prune observed visual tokens. \method{} selects unexpanded future queries, supervising their priority through latent interventions and their representation through candidate-return regret. The distinction concerns the selected computation and its supervision; we do not claim the first action-aware pruning method or an empirical advantage over these untested alternatives.
+
+\clearpage
+\section{Decision-influential world abstraction}
+\label{sec:method}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{figures/architecture.jpg}
+\caption{\method{} overview. \textbf{(a)} Context $C_t$ and an action proposal form $J=48$ object--time queries; influence scores and the budget head select $K_t\leq12$ for world decoding and action generation. \textbf{(b)} Reference and intervened futures share policy weights, noise, and time. Changes in actions, value $Q$, and progress $P$ produce influence targets $y_j$; matching ``I'' ports connect this supervision to the scorer. \textbf{(c)} Measured returns under $M=6$ aligned rules define regret vectors, which supervise pooled future geometry together with best-rule contrast. Solid arrows show forward computation; dashed gold arrows show supervision. Token grids and bars are schematic.}
+\label{fig:architecture}
+\end{figure}
+
+Figure~\ref{fig:architecture} connects the online policy with its two training signals. Panel (a) selects object--time queries before future decoding; panel (b) trains the influence scorer from paired latent interventions; panel (c) organizes future representations using measured candidate-action regret. The supervision branches shape what the online policy predicts and preserves, without requiring intervention probes or candidate-return collection during inference.
+
+\subsection{Structured context and action-conditioned futures}
+Let $x_t=(o_{\leq t},p_{\leq t},\ell)$ denote observation history, proprioception, and a language instruction. The policy predicts an action chunk $A_t=(a_t,\ldots,a_{t+L-1})\in\mathbb{R}^{L\times D}$. The encoder produces context $C_t$ and $N$ object slots $u_t^{1:N}\in\mathbb{R}^{N\times d}$ using Slot Attention and temporal Sinkhorn matching. Matching aligns observations within a trajectory, not object identities across episodes. Segmentation features and point tracks can provide additional inputs.
+
+A small proposal head predicts $\widetilde A_t=g(C_t)$. For future offset $k\in\{1,\ldots,H\}$ and slot $i\in\{1,\ldots,N\}$, define
+\begin{equation}
+q_t^{k,i}=u_t^i+e_i+e_k+\bar c_t+v(\widetilde A_t),
+\qquad
+\ell_t^{k,i}=G_\omega(q_t^{k,i}),
+\label{eq:queries}
+\end{equation}
+where $e_i,e_k$ are learned slot and time embeddings, $\bar c_t$ is normalized pooled context, and $v$ projects and pools the proposed actions. There are $J=HN$ candidate queries. Throughout, a single index $j$ can represent the pair $(k,i)$. The scorer $G_\omega$ is a lightweight multilayer perceptron; evaluating it does not require a predicted future token.
+
+Given selected indices $S_t$, a Transformer decoder expands only their queries:
+\begin{equation}
+\widehat Z_{t,S_t}=F_\psi(q_{t,S_t},[C_t,v(\widetilde A_t)]),
+\qquad
+A_t\sim\pi_\phi(\,\cdot\mid C_t,\widehat Z_{t,S_t}).
+\label{eq:sparse}
+\end{equation}
+Learned action queries attend to current context and selected futures, refining the preliminary proposal into the executed action chunk. Regret supervision uses a separate training-time candidate bank.
+
+
+
+\subsection{Learning influence from latent interventions}
+\label{sec:influence}
+During training, we decode all candidate futures and obtain a dense reference policy response. For a sampled index $j$, we replace the corresponding token while keeping the current context and other future tokens fixed. Replacement alternates between a learned mask token and a token from another episode of the same task when an eligible partner exists. Partner selection prefers similar contexts with different demonstrated actions. A mixture of high-scoring and randomly sampled indices provides both targeted supervision and coverage of tokens that the current scorer might overlook.
+
+Let $(\mu,v)$ and $(\mu^{(j)},v^{(j)})$ be the local action-response means and elementwise variances before and after intervention. For stochastic action heads these quantities are estimated using paired denoising or flow probes, sharing noise and sampled time. They are sensitivity surrogates, not exact moments of the complete action distribution. Define
+\begin{equation}
+\Delta_j^{\pi}=\RMS(\mu-\mu^{(j)})
++\beta_v\RMS(v-v^{(j)}),
+\label{eq:policyinfluence}
+\end{equation}
+where RMS averages over chunk positions and action coordinates. Let $b$ and $b^{(j)}$ be the corresponding pooled action-fusion features. Twin critics supply $Q(b,A)=\min_{r\in\{1,2\}}Q_r(b,A)$, and a progress head supplies $P(b)$. The total intervention response is
+\begin{equation}
+\Delta_j=\alpha_\pi\Delta_j^{\pi}
++\alpha_Q\left|Q(b,\mu)-Q(b^{(j)},\mu^{(j)})\right|
++\alpha_P\left|P(b)-P(b^{(j)})\right|.
+\label{eq:influence}
+\end{equation}
+The value term reflects a joint change in the decision representation and action response; it should not be interpreted as a fixed-action treatment effect.
+
+We map nonnegative responses into bounded supervision using a running scale $s_\Delta$:
+\begin{equation}
+y_j=\sg\!\left[1-\exp(-\Delta_j/s_\Delta)\right],
+\qquad
+\mathcal L_{\mathrm{inf}}=
+\E_{j\in\mathcal I_t}\Huber\big(\sigma(\ell_t^j),y_j\big),
+\label{eq:infloss}
+\end{equation}
+where $\mathcal I_t$ contains sampled interventions and $\sg$ stops gradients through the target. An exponential moving average of batch responses sets the scale. Defaults use four interventions and four stochastic probes per reference response.
+
+These latent interventions can produce physically unrealizable or out-of-distribution states. Same-task pairing limits semantic mismatch without eliminating it. Influence therefore guides computational priority; it does not identify environmental causal effects.
+
+\subsection{Regret geometry from measured candidate returns}
+\label{sec:regret}
+To preserve decision-relevant distinctions, let $\{b_m\}_{m=1}^M$ be candidate action-generation rules with stable meanings across paired states. Candidate $m$ produces $A_m(x)$, and its measured discounted return is $q_m(x)$. A candidate can be state dependent, but the index $m$ must refer to the same rule, such as the demonstrated action, a no-op, or a signed Cartesian perturbation. An arbitrary reordering would invalidate comparisons between regret coordinates.
+
+Define the candidate-relative regret vector and distance
+\begin{equation}
+r_m(x)=\max_n q_n(x)-q_m(x),
+\qquad
+d_R(x,x')=\sum_{m=1}^{M}|r_m(x)-r_m(x')|.
+\label{eq:regret}
+\end{equation}
+Candidate returns are external supervision, distinct from policy-generated value estimates. The LIBERO collector executes each candidate from the same restored simulator state for a short action chunk, using the environment reward and measured predicate progress. This bank defines a local decision comparison rather than a globally optimal continuous-control value. Appendix~\ref{app:supervision} specifies the labels and their collection boundaries.
+
+Let $z(x)$ pool the capacity-adjusted future tokens, and let $d_z(x,x')=1-\cos(z(x),z(x'))$. For same-task, cross-episode pairs with valid returns, the geometry loss is
+\begin{equation}
+\mathcal L_{\mathrm{reg}}=\E_{x,x'}\Huber\big(d_z(x,x'),\sg[d_R(x,x')]\big).
+\label{eq:geometry}
+\end{equation}
+An auxiliary contrastive term distinguishes equal and unequal best-candidate indices:
+\begin{equation}
+\mathcal L_{\mathrm{con}}=\E_{x,x'}\left[
+\mathbf{1}_{m^*=m'^*}\softplus(d_z)
++\mathbf{1}_{m^*\ne m'^*}\softplus(\delta-d_z)
+\right],
+\label{eq:contrastive}
+\end{equation}
+where $m^*=\arg\max_m q_m(x)$ and $\delta$ is a margin. Ties follow a fixed candidate ordering. Equal best indices provide coarse supervision: such pairs need not imply equal regret vectors, and this term can compete with full-vector matching. Because $d_z\in[0,2]$ while $d_R$ is unnormalized, Eq.~\eqref{eq:geometry} is a scale-dependent regularizer, not an exact metric embedding (Appendix~\ref{app:proof}).
+
+\begin{proposition}[Finite-candidate decision equivalence]
+\label{prop:regret}
+For an aligned candidate bank, $r(x)=r(x')$ if and only if there exists a scalar $c$ such that $q_m(x)=q_m(x')+c$ for every $m$. Moreover, if $\|r(x)-r(x')\|_\infty\leq\epsilon$ and $m'\in\arg\max_m q_m(x')$, then $r_{m'}(x)\leq\epsilon$.
+\end{proposition}
+Appendix~\ref{app:proof} proves the proposition by subtracting returns from each state's maximum. Regret preserves candidate choice while removing value offsets. The guarantee concerns the measured bank and does not follow automatically from the sampled geometry objective.
+
+\subsection{Sparse allocation, capacity, and training}
+\label{sec:training}
+\paragraph{Adaptive query budget.}
+Let $\rho_{\max}$ be the configured ceiling and $\rho_{\min}>0$ a floor. A context-conditioned budget head gives
+\begin{equation}
+\rho_t=\rho_{\max}-\sigma(B_\eta(\bar c_t))(\rho_{\max}-\rho_{\min}),
+\quad K_t=\max(1,\lceil J\rho_t\rceil),
+\quad S_t=\TopK(\ell_t,K_t).
+\label{eq:budget}
+\end{equation}
+The implementation has a positive minimum budget, so it adapts the amount of imagination without providing a zero-imagination branch. Rounding can make $K_t/J$ slightly larger than a continuous ceiling unless $J\rho_{\max}$ is integral. With $H=3$, $N=16$, and $\rho_{\max}=0.25$, at most 12 of 48 queries are selected per state.
+
+The budget objective aligns the mean sigmoid influence with $\rho_t$, aligns $\rho_t$ with the detached fraction of scores above a threshold, penalizes ceiling violations, and encourages low gate entropy. Hard Top-$K$ selection itself is discrete; the influence and budget heads receive learning signals through these auxiliary objectives. Selected queries are packed before the world decoder. With variable-length batches, padding up to the largest selected count can still incur computation, so token ratios alone do not establish latency speedups.
+
+\paragraph{Prediction and capacity allocation.}
+An exponential-moving-average tokenizer provides temporally aligned future targets $z^{+,j}$. On valid targets, prediction uses an influence-weighted cosine loss
+\begin{equation}
+\mathcal L_{\mathrm{fut}}
+=\E_t\sum_j w_t^j\big(1-\cos(\widehat z_t^j,\sg[z_t^{+,j}])\big),
+\qquad
+w_t^j\propto\exp\!\big(\sg[\ell_t^j]/\tau\big).
+\label{eq:future}
+\end{equation}
+Weights are renormalized over available targets. In the dense training reference, selected tokens retain full capacity, unselected tokens pass through a bottleneck, and very low-scoring tokens additionally stop policy gradients. The action-producing branch consumes selected tokens. At inference, unselected queries never enter the future decoder; the training-time dense reference and intervention passes are absent.
+
+\paragraph{Optimization.}
+The main imitation loss is augmented with proposal, future, influence, budget, critic, progress, regret, and contrastive terms:
+\begin{equation}
+\mathcal L=\mathcal L_{\mathrm{act}}
++\sum_{u\in\{\mathrm{prop,fut,inf,bud,Q,prog,reg,con}\}}
+\lambda_u\mathcal L_u.
+\label{eq:total}
+\end{equation}
+Proposal supervision uses continuous-action regression and gripper classification. Critics combine temporal-difference supervision with measured candidate-return regression, and progress uses measured task predicates. Training first establishes action prediction and future targets, then activates decision supervision and tighter budgets. Teacher forcing of demonstration action chunks decays toward conditioning on learned proposals. Exact reference settings and auxiliary objectives appear in Appendix~\ref{app:implementation}.
+
+\begin{algorithm}[t]
+\caption{\method{} at one control step}
+\label{alg:inference}
+\begin{algorithmic}[1]
+\REQUIRE Observation history $o_{\leq t}$, proprioception $p_{\leq t}$, instruction $\ell$
+\STATE Encode current context $C_t$ and temporally aligned object slots $u_t^{1:N}$.
+\STATE Predict proposal chunk $\widetilde A_t=g(C_t)$ and construct $HN$ queries.
+\STATE Score queries using $G_\omega$ and obtain budget $K_t$ using Eq.~\eqref{eq:budget}.
+\STATE Gather $q_{t,S_t}$ for $S_t=\TopK(\ell_t,K_t)$ before world decoding.
+\STATE Decode selected futures $\widehat Z_{t,S_t}=F_\psi(q_{t,S_t},[C_t,v(\widetilde A_t)])$.
+\STATE Fuse $C_t$ and $\widehat Z_{t,S_t}$, then generate the refined action chunk.
+\STATE Execute the configured action prefix and repeat at the next observation.
+\end{algorithmic}
+\end{algorithm}
+
+\section{Experiments}
+\label{sec:experiments}
+We evaluate whether decision-guided abstraction improves task completion and robustness, whether selective decoding lowers inference cost, and whether the learned scores and geometry track measured decision consequences.
+
+\subsection{Evaluation settings}
+\paragraph{Tasks and statistical units.}
+We evaluate LIBERO \citep{liu2023libero}, RoboTwin \citep{mu2025robotwin}, RoboCasa \citep{nasiriany2024robocasa}, and six real-robot manipulation tasks. Simulation experiments use training seeds 42, 43, and 44. LIBERO includes Spatial, Object, Goal, and Long (\texttt{libero\_10}), each with ten tasks and 50 initial states per task per seed: 6,000 episodes per method. RoboTwin and RoboCasa each use 20 selected tasks and 50 episodes per task per seed: 3,000 episodes per method per platform. The physical evaluation uses the seed-42 checkpoint, with 50 trials on each of six tasks, totaling 300 trials per method. Success requires completion of all task-specific goals.
+
+We average tasks within each platform and then across training seeds; the four-platform aggregate weights the platform means equally. Simulation uncertainty is the sample standard deviation (SD) across three training seeds. Physical trials characterize one checkpoint, so we do not attach a training-seed SD to physical scores or to the mixed four-platform aggregate. Appendix~\ref{app:results} gives seed scores, SD, standard errors, and physical success counts.
+
+\paragraph{Baselines and implementation.}
+We evaluate Octo, OpenVLA, GR-1, RoboDreamer, WorldVLA, and DreamVLA in this study. DreamVLA serves as the backbone for DIWA and its variants, whereas external baselines retain their architectural and pretraining differences. DIWA also uses candidate-return and progress supervision, so the DreamVLA comparison measures the complete system rather than the isolated effect of query selection. DIWA has 16 slots, three future offsets, three-step action chunks, and a 6.25\%--25\% adaptive budget. Appendix~\ref{app:implementation} specifies the AdamW reference recipe and staged optimization.
+
+\paragraph{Robustness and timing.}
+The OOD evaluation equally averages appearance changes, task-irrelevant background motion, and contact counterfactuals. Appearance changes affect object or container texture, color, and material; background motion introduces distractors outside the task interaction. Contact counterfactuals change contact state or the appropriate action in visually similar scenes. Episode success and counterfactual (CF) decision accuracy are distinct outcomes. OOD and standard results use different populations, so their ratio is not a robustness-retention metric. Latency includes perception, future computation, and action decoding. Appendix~\ref{app:reporting} specifies metric definitions and the available comparison scope.
+
+\subsection{Task success across platforms and task suites}
+\input{tables/main}
+DIWA achieves 73.5\% four-platform success, compared with DreamVLA's 67.9\% (Table~\ref{tab:main}). Improvements on LIBERO, RoboTwin, RoboCasa, and the physical platform are 4.8, 5.6, 5.3, and 6.7 percentage points, respectively. DIWA has the highest mean on every platform among the evaluated methods. The simulation gains exceed the observed variation across the three training seeds, although these summaries alone do not constitute a significance test.
+
+\input{tables/libero}
+The LIBERO breakdown localizes part of the improvement (Table~\ref{tab:libero}). Relative to DreamVLA, gains are 3.8 points on Spatial, 4.0 on Object, 5.4 on Goal, and 6.0 on Long. The larger gains on Goal and Long are consistent with retaining information about target relations and multi-stage action consequences. They do not by themselves isolate the contribution of either training objective.
+
+On the physical robot, DIWA succeeds in 216 of 300 trials, compared with 196 for DreamVLA. The resulting 20 additional successes correspond to a 6.7-point improvement. The largest task-level gains occur for insertion (52\% to 62\%) and multi-stage contact (56\% to 64\%); DIWA improves all six task categories. Appendix~\ref{app:results} reports the complete counts. These results establish the behavior of the evaluated seed-42 checkpoints, while cross-training-seed physical variation remains outside this evaluation.
+
+\subsection{Robustness and counterfactual decisions}
+\input{tables/ood}
+DIWA obtains 75.8\% OOD success, versus 65.2\% for DreamVLA (Table~\ref{tab:ood}). Across training seeds, these means have SDs of 0.80 and 0.92 points. Gains are 10.4 points for appearance changes, 9.8 for background motion, and 11.6 for contact counterfactuals. Improving both visual-shift tolerance and contact discrimination is consistent with the intended abstraction: ignore variation that does not alter the task while preserving distinctions that change the appropriate action. The contact success rate of 76.4\% measures completed episodes, whereas DIWA's 81.6\% CF accuracy measures decision correctness.
+
+\subsection{Inference efficiency and budget sensitivity}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/budget_frontier.pdf}
+\caption{Measured success--latency tradeoff. Gray points fix the decoder-query count out of 48 candidates; the teal star is the adaptive main setting with a 25\% ceiling. Fixed 12-query decoding yields 73.6\% success at 91\,ms; adaptive decoding yields 73.5\% at 89\,ms. Lines connect measured fixed-budget settings as a visual guide.}
+\label{fig:budget}
+\end{figure}
+DIWA requires 89\,ms per inference update, versus 213\,ms for dense DIWA: a 58.2\% reduction and a $2.39\times$ speedup. WorldVLA and RoboDreamer require 241 and 318\,ms, respectively (Appendix~\ref{app:results}). These cross-architecture comparisons contextualize pipeline cost; the dense DIWA comparison more directly tests selective future expansion. The adaptive model retains 23.7\% of future queries on average. The resulting 76.3\% query reduction exceeds the latency reduction because perception, scoring, and action generation still incur computation.
+
+Figure~\ref{fig:budget} distinguishes fixed query counts from an adaptive ceiling. Fixed 50\% decoding uses 24 queries and attains 74.1\% at 132\,ms. Fixed 25\% uses 12 queries and attains 73.6\% at 91\,ms, compared with 73.4\% at 213\,ms for all 48 queries. Reducing the budget to six or three queries lowers latency to 71 or 61\,ms but reduces success to 69.8\% or 62.9\%. Thus, moderate sparsity preserves performance, whereas aggressive pruning removes useful information. The adaptive setting offers a measured operating point close to fixed 25\%; the 2\,ms difference is not evidence of a statistically established advantage. Complete values appear in Table~\ref{tab:budget}.
+
+\subsection{Ablations and mechanism diagnostics}
+\input{tables/ablation}
+\paragraph{Influence and selection.}
+The no-influence variant yields standard and OOD success rates lower by 5.3 and 9.7 points respectively (Table~\ref{tab:ablation}). Uniform Top-$K$ selection yields success rates lower by 2.9 and 6.9 points respectively, and a CF accuracy of 74.3\%.. These comparisons concern evaluated variants; attributing their differences solely to ranking requires matched retained counts and training settings. The 142\,ms latency of the no-influence variant does not identify the computational cost of the scorer. Dense DIWA achieves similar success and CF accuracy at 213\,ms, supporting the measured efficiency of the sparse system. Appendix~\ref{app:reporting} separates variant semantics from implementation switches.
+
+\paragraph{Intervention and regret supervision.}
+Removing cross-episode swaps lowers CF accuracy by 8.8 points and OOD success by 5.6 points. Removing regret geometry lowers standard success by 4.2 points and CF accuracy by 11.0 points. Their 88 and 89\,ms latencies are close to the full model's 89\,ms. The point estimates favor both training signals, without establishing statistical significance or physical validity for every latent substitution.
+
+\input{tables/mechanisms}
+\paragraph{Do the learned quantities track decision consequences?}
+On independent test states, influence scores correlate with intervention-induced action changes at Spearman $\rho=0.71$, versus 0.48 without swaps (Table~\ref{tab:mechanisms}). Paired probes hold action noise and time fixed. Sweeping all 48 interventions supplies the reference ranking; Top-12 recall is 83\%, versus 65\%. For same-task, cross-episode pairs with independently measured returns, latent--regret distance correlation is 0.68, versus 0.29 without regret geometry. These point estimates support an association with the training targets. They do not establish metric calibration or quantify uncertainty without the underlying state and pair records.
+
+\section{Limitations and discussion}
+\label{sec:limitations}
+Influence depends on the action model and critics, so a mistaken policy may ignore an important physical variable. Single-token interventions miss interactions and redundancy, while learned slots and cross-episode substitutions need not correspond to physical objects or realizable states. The diagnostics measure model sensitivity, not identified environmental causal effects.
+
+Regret supervision requires outcomes for aligned candidate actions and adds data-collection cost. A six-rule bank and short branches may omit useful actions or delayed effects; binary progress can also leave candidates tied away from completion. Physical candidate collection is separate from success evaluation. The geometry loss has a bounded prediction range and can conflict with the coarser best-index objective, so the benefit is empirical rather than an exact embedding guarantee.
+
+Dense training and sparse inference use different query interactions, and padded batches may reduce savings. The minimum budget precludes skipping imagination entirely. Three training seeds and one physical checkpoint leave uncertainty about broader variation and action-head transfer. Comparisons with recent VLA pruning methods, training-cost measurements, and complete run-level timing and diagnostic records remain outside the available evidence (Appendix~\ref{app:reporting}).
+
+\section{Conclusion}
+DIWA scores object--time queries before future decoding, learns computational priorities from latent interventions, and regularizes representations with measured candidate-action regret. Across three simulation platforms and physical manipulation, it improves task success and OOD performance while reducing latency relative to dense imagination. Budget sweeps identify a useful sparsity range, and independent intervention diagnostics support the intended influence ranking and regret geometry. The results connect predictive computation to robot decisions and motivate interaction-aware selection and longer-horizon supervision.
+
+\clearpage
+\subsection*{AI use statement}
+Generative AI was used for language polishing to improve the grammar, clarity, and readability of the manuscript.
+
+\subsection*{Reproducibility statement}
+Equations~\eqref{eq:queries}--\eqref{eq:total} and Algorithm~\ref{alg:inference} specify the method. Appendix~\ref{app:implementation} gives the reference implementation and optimization; Appendix~\ref{app:supervision} defines supervision; and Appendix~\ref{app:proof} proves the finite-candidate guarantee. Appendix~\ref{app:results} reports simulation seeds, physical success counts, and statistical conventions. The accompanying manuscript source and numerical records support regeneration of the paper's tables and figures. This reproduces the reported summaries; reproducing policy training and evaluation additionally requires the experiment records discussed in Appendix~\ref{app:reporting}.
+
+\bibliography{references}
+\bibliographystyle{iclr2027_conference}
+
+\clearpage
+\appendix
+\section{Reference implementation and optimization}
+\label{app:implementation}
+We implement \method{} as an optional DreamVLA path with an object tokenizer, proposal and influence heads, an adaptive budget, an action-conditioned world decoder, policy fusion, twin critics, and a progress predictor. Target critics and the target object encoder use exponential moving averages. Table~\ref{tab:configuration} specifies the reference LIBERO recipe and evaluation seeds. Its script defaults describe the implementation; they do not establish the hardware or configuration of every reported run.
+
+\begin{table}[htbp]
+\centering
+\caption{Reference architecture and optimization settings, with the evaluation seeds. The 8-device launch and its effective batch are script defaults; actual hardware requires the corresponding run record.}
+\label{tab:configuration}
+\begin{tabular}{lr}
+\toprule
+Setting & Value\\
+\midrule
+Hidden width / attention heads & 1024 / 16\\
+Object slots $N$ / future offsets $H$ & 16 / 3\\
+World-decoder layers / policy-fusion layers & 2 / 2\\
+Action-chunk length / policy sequence length & 3 / 7\\
+Observation window including future targets & 10\\
+Slot Attention iterations & 3\\
+Maximum / minimum query-budget ratio & 0.25 / 0.0625\\
+Influence temperature $\tau$ / gate threshold & 0.25 / 0.5\\
+Intervened tokens / stochastic probes & 4 / 4\\
+Candidate rules $M$ / critic discount & 6 / 0.99\\
+Regret contrastive margin / EMA update rate & 0.5 / 0.005\\
+Action-variance coefficient $\beta_v$ & 0.1\\
+Influence weights $(\alpha_\pi,\alpha_Q,\alpha_P)$ & $(1,1,1)$\\
+Learning rate / weight decay & $10^{-4}$ / $10^{-4}$\\
+Epochs / scheduler warm-up epochs & 40 / 5\\
+Per-device batch size / gradient accumulation & 16 / 4\\
+Default training devices / effective batch & 8 / 512\\
+Policy / visual-module precision & FP32 / BF16\\
+Training seeds used in simulation & 42, 43, 44\\
+Physical checkpoint seed / evaluation-script default & 42 / 66\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Loss weights.}
+The weights for proposal, future, influence, budget, critic, progress, regret, and contrastive learning are $(0.1,0.1,0.1,0.001,0.1,0.05,0.01,0.01)$. The action imitation objective is inherited from the configured action head. The proposal head uses smooth-$L_1$ regression for continuous coordinates and binary cross-entropy for gripper coordinates, with a 0.01 relative gripper weight. Action normalization and gripper conversion must match the data adapter; the LIBERO adapter maps native $-1/+1$ gripper values to the policy's $0/1$ convention.
+
+\paragraph{Staging.}
+Proposal and future prediction are active from initialization. Critic and progress objectives start at step 1,000; counterfactual influence and budget objectives also start at step 1,000; regret and contrastive objectives start at step 2,000. The budget schedule has a 1,000-step warm-up followed by 10,000 annealing steps. The teacher-forcing schedule spans 5,000 steps. The reference command uses FP32 policy computation with BF16 for the vision module. These settings describe the source recipe, rather than an unspecified hyperparameter search.
+
+\paragraph{Budget objective.}
+Writing $p_j=\sigma(\ell_j)$ and $\bar p=J^{-1}\sum_jp_j$, the detached target allocation is
+\begin{equation}
+\widehat\rho=\operatorname{clip}\!\left(
+J^{-1}\sum_j\mathbf{1}[\sg[p_j]\geq\kappa],\rho_{\min},\rho_{\max}\right).
+\end{equation}
+The auxiliary objective is
+\begin{equation}
+\mathcal L_{\mathrm{bud}}=
+\E\left[|\bar p-\rho_t|+|\rho_t-\widehat\rho|
++[\rho_t-\rho_{\max}]_+\right]
++\lambda_{\mathrm{ent}}\E_j h(p_j),
+\end{equation}
+where $h(p)=-p\log p-(1-p)\log(1-p)$, $\kappa=0.5$, and $\lambda_{\mathrm{ent}}=0.01$. The ceiling term is redundant when the bounded head is used exactly as specified, but is included in the implementation. The initial budget-head bias is $-4$, placing initial adaptive budgets near their ceiling.
+
+\paragraph{Training reference capacity.}
+For a dense future token $z_j$, the reference branch retains $z_j$ when it is selected, otherwise applies a learned bottleneck $B(z_j)$. If an unselected token's sigmoid score is below $\kappa/2$, the resulting bottleneck feature is detached. This capacity adjustment affects the dense reference and pooled regret representation. The online branch gathers only selected queries and does not generate or pool all low-influence future tokens.
+
+\paragraph{Computational scope.}
+For a Transformer world decoder with context length $T$ and width $d$, replacing $J$ future queries by $K$ changes its attention terms from $O(J^2d+JTd)$ to $O(K^2d+KTd)$ and its tokenwise projections from $O(Jd^2)$ to $O(Kd^2)$. Visual encoding, query scoring, and action generation remain. The complexity comparison concerns the future decoder; measured end-to-end latency is the relevant control-system quantity. Dense decoding during training also means that online savings should not be read as training-cost savings.
+
+
+
+\section{Measured supervision and candidate semantics}
+\label{app:supervision}
+The strict supervision interface requires measured reward, episode termination, task progress, candidate action chunks, and candidate returns. For an episode of length $T_e$, their shapes are $[T_e]$, $[T_e]$, $[T_e]$, $[T_e,M,L,D]$, and $[T_e,M]$. Missing or malformed fields fail validation. Each return must correspond to its accompanying state and action chunk, with common candidate semantics, normalization, discount, horizon, and shaping across paired states. This interface validates data structure; it does not establish how labels were collected on a particular platform.
+
+\paragraph{LIBERO branch measurement.}
+The collector restores the recorded simulator state before each candidate. Candidate 0 replays the demonstration chunk, candidate 1 uses no continuous motion while retaining the gripper command, and candidates 2--5 add $+x$, $-x$, $+y$, and $-y$ Cartesian perturbations to the demonstration, respectively. With six candidates, the finite rule bank does not cover every Cartesian direction or every possible robot action. The default perturbation magnitude is 0.15 in the normalized action coordinates. With $n_m\leq L$ executed steps, the return is
+\begin{equation}
+q_m(x)=\sum_{s=0}^{n_m-1}\gamma^s R_s
++\lambda_p\gamma^{n_m}\max(0,P_{\mathrm{end}}-P_{\mathrm{start}}),
+\end{equation}
+where $\gamma=0.99$ and the collector's default $\lambda_p=1$. The reference collector obtains $P$ from the environment success check, so its measured progress is binary, $P\in\{0,1\}$; it does not implement intermediate quarter-stage labels. Execution stops on episode termination. This is a short-branch shaped return, not an independently established infinite-horizon $Q^*$.
+
+\paragraph{Critic objectives and interpretation.}
+For valid consecutive sequence states, twin critics use a target
+\begin{equation}
+y_t^{\mathrm{TD}}=R_t+\gamma(1-d_t)
+\min_{r\in\{1,2\}}\overline Q_r(b_{t+1},\widetilde A_{t+1}).
+\end{equation}
+Smooth-$L_1$ losses fit both online critics to this target and to supplied candidate-return labels. A sigmoid progress head is trained with binary cross-entropy on measured progress in $[0,1]$. Short-branch candidate targets and bootstrapped TD targets can have different horizons and shaping conventions. Thus, the critic is a practical auxiliary sensitivity model; a single calibrated value-function interpretation requires the data-collection horizon and reward conventions to be aligned. The regret loss uses the supplied candidate returns directly and does not require interpreting the learned critic as ground-truth return.
+
+\paragraph{Offline and physical data.}
+Recorded trajectories reveal outcomes only for executed actions. Offline adapters mark unavailable counterfactual returns rather than treating them as zero. Strict training requires external candidate supervision; a non-strict critic-derived fallback has different semantics and is not a measured-return substitute. Simulator state restoration specifies the LIBERO branch procedure. RoboTwin, RoboCasa, and physical candidate-label collection cannot be inferred from their task-success counts; platform-specific reset, repetition, and return records are required to reproduce that supervision. Additional branch interactions also belong in the training-data budget when comparing against imitation-only baselines.
+
+\section{Properties and boundaries of regret geometry}
+\label{app:proof}
+\begin{proof}[Proof of Proposition~\ref{prop:regret}]
+Write $v(x)=\max_m q_m(x)$. If $r(x)=r(x')$, then for every $m$,
+\[
+v(x)-q_m(x)=v(x')-q_m(x'),
+\]
+so $q_m(x)-q_m(x')=v(x)-v(x')$, a constant independent of $m$. Conversely, if $q_m(x)=q_m(x')+c$ for all $m$, taking maxima gives $v(x)=v(x')+c$, and subtraction gives equal regrets. For the second assertion, optimality of $m'$ at $x'$ gives $r_{m'}(x')=0$. Hence
+\[
+0\leq r_{m'}(x)=|r_{m'}(x)-r_{m'}(x')|
+\leq\|r(x)-r(x')\|_\infty\leq\epsilon.
+\]
+\end{proof}
+
+\paragraph{Noisy measurements.}
+Suppose observed candidate returns $\widetilde q$ have uniform error at most $\eta$. The maximum value also has error at most $\eta$, so each regret coordinate has error at most $2\eta$. If measured regret vectors satisfy $\|\widetilde r(x)-\widetilde r(x')\|_\infty\leq\epsilon$ and $m'$ maximizes $\widetilde q_m(x')$, then $\widetilde r_{m'}(x')=0$ and
+\[
+r_{m'}(x)\leq\widetilde r_{m'}(x)+2\eta\leq\epsilon+2\eta.
+\]
+This elementary stability bound assumes consistent candidate semantics and bounded label error. Neither assumption is guaranteed by visual similarity or a learned critic. It is not an end-to-end policy-performance bound.
+
+\paragraph{Why aggregate influence is not additive.}
+Consider a binary decision $f(z_1,z_2)=z_1\lor z_2$ at $(1,1)$ and an intervention replacing a token by 0. Removing either token alone leaves the decision unchanged, but removing both changes it. Single-token influence can therefore underestimate the importance of a jointly useful subset. Similarly, independent ranking cannot generally optimize a non-additive set objective. The minimum budget and task supervision provide practical constraints, but do not prove preservation of all decision-relevant information.
+
+\paragraph{Geometry scale and fit residual.}
+Cosine dissimilarity lies in $[0,2]$, whereas $d_R$ sums unnormalized return differences. For the unit-transition smooth-$L_1$ penalty $h$, every pair therefore obeys
+\begin{equation}
+\Huber(d_z,d_R)=h(d_z-d_R)\ \geq\ h\big([d_R-2]_+\big).
+\end{equation}
+This lower bound does not imply that all pairwise targets are jointly realizable. For $d_R\geq3$, the derivative with respect to $d_z\in[0,2]$ is $-1$: sufficiently large targets push representations apart without encoding their full magnitude. Reward scaling and candidate count thus change the regularizer. The reported formulation uses raw returns; introducing a normalized target would change the method and require reevaluation.
+
+For an aligned bank, let $e(x,x')=|d_z(x,x')-d_R(x,x')|$. If $m'$ maximizes the candidate return at $x'$, Proposition~\ref{prop:regret} implies
+\begin{equation}
+ r_{m'}(x)\leq\|r(x)-r(x')\|_\infty
+ \leq d_R(x,x')\leq d_z(x,x')+e(x,x').
+\end{equation}
+Small latent distance controls candidate regret only together with small fit residual. Spearman correlation alone establishes neither condition. The noisy-label bound adds $2\eta$ when distances and maximizers use measured returns.
+
+\paragraph{Ties and supervision content.}
+If all candidate returns at a state are equal, its regret vector is zero and the best-rule index is selected by tie order. Short branches with binary progress can yield such states. A geometry diagnostic therefore needs the proportion of nonconstant return vectors, best-index tie frequency, the $d_R>2$ rate, and residuals on its actual evaluation pairs. These quantities cannot be reconstructed from aggregate rank correlations; no empirical values for them are inferred here.
+
+\section{Complete evaluation results and statistical conventions}
+\label{app:results}
+Table~\ref{tab:seeds} reports each simulation training seed; Table~\ref{tab:suite_seeds} gives suite-level seed scores; Table~\ref{tab:real_robot} reports physical success counts. All baseline scores are measurements from this study. The numerical ledger separates measured scores and counts from computed means, uncertainty summaries, and relative improvements.
+
+\paragraph{Aggregation and uncertainty.}
+For training-seed scores $s_1,s_2,s_3$, we compute $\bar s=\frac13\sum_i s_i$, sample SD $\sqrt{\sum_i(s_i-\bar s)^2/2}$, and SEM $=\mathrm{SD}/\sqrt{3}$. These describe training-seed variation, not variation among individual episodes. Simulation evaluates 50 initial states per task per training seed. The evaluation-script seed 66 is a separate randomness setting and is not a fourth training seed. The four-platform macro-average combines three seed-averaged simulation scores with one physical-checkpoint score, so no joint seed-level SD is inferred.
+
+Averages use unrounded platform values before final rounding. In particular, DreamVLA's RoboCasa mean is $(58.2+59.2+59.8)/3=59.0667\%$, and its physical score is $196/300=65.3333\%$. Together with LIBERO and RoboTwin, these yield a four-platform macro-average of 67.9\%. DIWA's physical gain is $(216-196)/300\times100=6.6667$ points. No statistical significance claim is made from the aggregate counts alone.
+
+For a physical task with $s$ successes in $n=50$ trials, Table~\ref{tab:real_robot} additionally reports a conditional Wilson interval. With $\widehat p=s/n$ and $z_{.975}\approx1.95996$, its endpoints are
+\begin{equation}
+\frac{\widehat p+z_{.975}^2/(2n)\ \pm\ z_{.975}
+\sqrt{\widehat p(1-\widehat p)/n+z_{.975}^2/(4n^2)}}{1+z_{.975}^2/n}.
+\end{equation}
+This calculation assumes independent Bernoulli trials within each task and conditions on the trained checkpoint. It does not capture variation across training seeds or provide a paired test between methods. We do not pool heterogeneous tasks into a single common-probability binomial interval.
+
+\input{tables/seeds}
+\input{tables/suite_seeds}
+\input{tables/real_robot}
+
+\paragraph{Budget and pipeline cost.}
+Table~\ref{tab:budget} records fixed counts separately from the adaptive main setting. Its mean count of approximately 11.38 queries is a conversion of the rounded 23.7\% retention rate, not a noninteger per-state allocation. Figure~\ref{fig:latency} gives the pipeline comparisons. An 89\,ms update corresponds arithmetically to 11.2 serial policy updates per second before communication, observation waiting, and physical execution; this does not specify the robot's low-level control rate. Mean latency alone does not determine P95 latency or memory consumption.
+
+\input{tables/budget}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/latency.pdf}
+\caption{Measured mean inference latency. Adaptive DIWA uses 89\,ms, dense DIWA 213\,ms, WorldVLA 241\,ms, and RoboDreamer 318\,ms. Relative reductions are 58.2\%, 63.1\%, and 72.0\%, respectively. Values are point estimates without timing error bars.}
+\label{fig:latency}
+\end{figure}
+
+\newpage
+\section{Evaluation definitions and comparison scope}
+\label{app:reporting}
+Episode completion, decision-label correctness, intervention ranking, and return geometry have distinct statistical units. Physical success-trial counts do not specify the CF sample size or candidate-return labels.
+
+\paragraph{Counterfactual decision accuracy.}
+For predicted decision labels $\widehat c_i$ and reference labels $c_i$, the evaluator computes
+\begin{equation}
+\operatorname{Acc}_{\mathrm{CF}}=\frac{1}{N_{\mathrm{dec}}}
+\sum_{i=1}^{N_{\mathrm{dec}}}\mathbf{1}[\widehat c_i=c_i].
+\end{equation}
+$N_{\mathrm{dec}}$ counts label entries, not episodes. This compares decision labels rather than continuous action vectors. Reproduction requires the action-to-label mapping, reference labels, and counterfactual scene pairing. Invariant-scene action consistency is a separate metric.
+
+\paragraph{Rank correlations and ties.}
+Spearman's $\rho$ correlates average ranks, including ties. The reference influence evaluator averages within-state correlations and Top-12 recall, $|S_{12}^{\mathrm{pred}}\cap S_{12}^{\mathrm{int}}|/12$. The reference set sweeps all 48 interventions with shared action noise and sampled time. Independent uniform selection has expected recall $25\%$, a mathematical reference rather than a measured control. The regret evaluator correlates cosine and regret-$L_1$ distances over the upper triangle of a pairwise matrix. It has no internal task or episode filter: same-task, cross-episode restrictions and subsampling depend on the evaluation data. Constant-rank inputs return zero by convention. Top-$K$ ties require an index rule; pairs sharing an episode are not independent uncertainty replicates.
+
+\paragraph{Run-level reproducibility.}
+The records omit actual GPUs, device counts, precision, batches, resolutions, software versions, sampling steps, timing warm-up/repetitions, and checkpoints. The reference profiler uses synchronized wall-clock timing; its defaults do not identify each measured run. Task IDs, benchmark versions, trajectory splits, clean/OOD pairing, and baseline fine-tuning configurations are also absent. Consequently, timing results describe measured operating points without uncertainty estimates or hardware-independent speed guarantees.
+
+\paragraph{Physical and diagnostic records.}
+The task counts do not specify robot, gripper, cameras, resets, control settings, or candidate-return collection. The aggregate diagnostics omit CF labels and denominators, state/pair counts, sampling rules, action normalization, and individual responses. These summaries do not determine diagnostic uncertainty or label diversity.
+
+\paragraph{Variant semantics.}
+The no-influence variant measures 142\,ms. Its reference switch zeros logits but still evaluates the estimator without expanding the budget; this alone cannot explain the latency difference. Equal logits followed by Top-$K$ also do not implement uniform random sampling. Isolating ranking quality requires the actual index rule and matched retained counts. Fixed-count sweeps must disable adaptation or enforce $K$, rather than only changing its ceiling. The aggregate record leaves retained-count matching and checkpoint/retraining relationships unresolved, precluding attribution to scorer overhead or a statistically established adaptive-budget advantage.
+
+\end{document}

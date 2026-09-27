@@ -1,0 +1,20 @@
+\begin{table}[t]
+\centering
+\caption{Task success (\%) under our evaluation protocol. Simulation columns report mean $\pm$ sample SD across three training seeds. Real-robot results use the seed-42 checkpoint and 300 trials per method. The final column weights the four platform means equally.}
+\label{tab:main}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Method & LIBERO & RoboTwin & RoboCasa & Real robot & Macro\\
+\midrule
+Octo & $73.2 \pm 0.70$ & $55.6 \pm 0.92$ & $47.2 \pm 0.72$ & 50.0 & 56.5\\
+OpenVLA & $76.0 \pm 0.56$ & $59.8 \pm 0.92$ & $50.2 \pm 0.72$ & 56.0 & 60.5\\
+GR-1 & $77.4 \pm 0.56$ & $61.6 \pm 0.92$ & $53.4 \pm 0.72$ & 58.0 & 62.6\\
+RoboDreamer & $78.2 \pm 0.66$ & $64.0 \pm 0.80$ & $56.2 \pm 0.72$ & 60.0 & 64.6\\
+WorldVLA & $79.0 \pm 0.56$ & $65.8 \pm 0.80$ & $57.6 \pm 0.92$ & 62.0 & 66.1\\
+DreamVLA & $79.6 \pm 0.66$ & $67.6 \pm 0.80$ & $59.1 \pm 0.81$ & 65.3 & 67.9\\
+\midrule
+\textbf{DIWA} & $\mathbf{84.4 \pm 0.56}$ & $\mathbf{73.2 \pm 0.80}$ & $\mathbf{64.4 \pm 0.80}$ & \textbf{72.0} & \textbf{73.5}\\
+\bottomrule
+\end{tabular}
+\end{table}

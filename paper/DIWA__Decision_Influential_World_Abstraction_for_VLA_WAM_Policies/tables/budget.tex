@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Measured budget sweep with 48 candidate queries. The first five rows fix the query count; the last row adapts it under a 25\% ceiling. The approximate adaptive mean count is derived from the rounded 23.7\% retention rate.}
+\label{tab:budget}
+\small
+\begin{tabular}{lrrr}
+\toprule
+Setting & Queries retained & Success (\%) & Latency (ms)\\
+\midrule
+Fixed 100\% & 48 & 73.4 & 213\\
+Fixed 50\% & 24 & 74.1 & 132\\
+Fixed 25\% & 12 & 73.6 & 91\\
+Fixed 12.5\% & 6 & 69.8 & 71\\
+Fixed 6.25\% & 3 & 62.9 & 61\\
+\midrule
+Adaptive, ceiling 25\% & $\approx 11.38$ (mean) & 73.5 & 89\\
+\bottomrule
+\end{tabular}
+\end{table}

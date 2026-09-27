@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f9fbfa">
+  <meta name="description" content="DIWA: Decision-Influential World Abstraction for VLA-WAM Policies. Select future information by its influence on robot decisions. ICLR 2027 submission.">
+  <meta property="og:title" content="DIWA | Decision-Influential World Abstraction">
+  <meta property="og:description" content="Compute the futures that matter for the next action. Explore the method, measured results, and query-budget tradeoff.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/architecture.jpg">
+  <title>DIWA | Decision-Influential World Abstraction</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <noscript><style>.hero-scene{display:none}</style></noscript>
+  <script defer src="assets/vendor/lucide.min.js"></script>
+  <script defer src="assets/vendor/motion.js"></script>
+  <script defer src="assets/results.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="wordmark" href="#" aria-label="DIWA home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DIWA<span class="wordmark-note">Research</span></a>
+      <button class="icon-button menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="navigation" title="Open navigation"><i data-lucide="menu"></i></button>
+      <nav id="navigation" aria-label="Main navigation">
+        <a href="#method">Method</a><a href="#explore">Explore</a><a href="#results">Results</a><a href="#resources">Resources</a>
+        <a class="nav-paper" href="assets/diwa-paper.pdf">Read paper <i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
+      </nav>
+    </div>
+    <div class="scroll-progress" aria-hidden="true"></div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy wrap">
+        <p class="eyebrow hero-eyebrow"><span class="status-dot"></span> ICLR 2027 submission <span class="eyebrow-divider">/</span> Anonymous authors</p>
+        <h1 id="hero-title">DIWA<span class="title-period">.</span></h1>
+        <h2 class="hero-subtitle">Decision-Influential World Abstraction<br>for VLA-WAM Policies</h2>
+        <p class="hero-description">Imagine what matters.<br class="mobile-only"> Act with less computation.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="assets/diwa-paper.pdf"><i data-lucide="file-text" aria-hidden="true"></i> Read the paper <i data-lucide="arrow-up-right" aria-hidden="true"></i></a>
+          <a class="button secondary" href="assets/diwa-source.zip" download><i data-lucide="file-archive" aria-hidden="true"></i> Paper source</a>
+          <a class="text-link" href="#code-availability"><i data-lucide="code-2" aria-hidden="true"></i> Code status</a>
+        </div>
+      </div>
+
+      <div class="hero-scene" aria-label="Conceptual query selection: 48 object-time queries are scored, 12 selected queries are decoded, and an action is produced.">
+        <canvas id="flow-canvas" aria-hidden="true"></canvas>
+        <div class="scene-labels" aria-hidden="true"><span><b>48</b> candidate queries</span><span>Score <i data-lucide="arrow-right"></i> select</span><span><b>12</b> selected futures</span><span>Next action</span></div>
+        <div class="scene-caption"><span>Schematic &middot; selection before decoding</span><button id="motion-toggle" class="icon-button" aria-label="Pause animation" title="Pause animation" hidden><i data-lucide="pause" aria-hidden="true"></i></button></div>
+      </div>
+
+      <div class="hero-metrics wrap">
+        <div><p class="metric-value">73.5<span>%</span></p><p>Four-platform success</p><span class="metric-note">+5.6 points vs. DreamVLA</span></div>
+        <div><p class="metric-value">75.8<span>%</span></p><p>Out-of-distribution success</p><span class="metric-note">+10.6 points vs. DreamVLA</span></div>
+        <div><p class="metric-value">89<span> ms</span></p><p>Mean inference latency</p><span class="metric-note">58.2% lower than dense DIWA</span></div>
+      </div>
+    </section>
+
+    <section class="section idea-section" id="idea" aria-labelledby="idea-title">
+      <div class="wrap idea-layout">
+        <div class="reveal"><p class="eyebrow section-index">01 / The idea</p><h2 id="idea-title">Not every future detail<br>changes the next action.</h2></div>
+        <div class="idea-copy reveal"><p class="lead">A moving background may be visually complex. A small change in contact may be decision-critical.</p><p>DIWA allocates world-model computation to future information that influences the policy. It scores object&ndash;time queries <strong>before</strong> decoding them, then imagines only a selected subset.</p><a class="text-link" href="#method">From predictive detail to decision utility <i data-lucide="arrow-down" aria-hidden="true"></i></a></div>
+      </div>
+      <div class="wrap abstract-details"><details><summary>Abstract <i data-lucide="plus" aria-hidden="true"></i></summary><p>Predicting future observations can improve robot decision making, but a controller need not model every visible change with equal fidelity. We introduce Decision-Influential World Abstraction (DIWA), a framework that allocates future modeling capacity according to its effect on action generation. A lightweight estimator ranks object&ndash;time queries before an action-conditioned world decoder expands them. Its supervision measures changes in action responses, value estimates, and task progress under latent interventions, with shared randomness for stochastic action heads. A complementary regret geometry organizes representations by the relative returns of aligned candidate action rules. During inference, only selected future queries are decoded, avoiding dense future generation. Across LIBERO, RoboTwin, RoboCasa, and real-robot manipulation, DIWA achieves 73.5% aggregate success, improving over DreamVLA by 5.6 percentage points. The out-of-distribution evaluation yields 75.8% success, a 10.6-point improvement. Mean inference latency is 89 ms, compared with 213 ms for dense imagination and 241 ms for WorldVLA. Three-seed simulation results, 300 physical trials per method, budget sweeps, and intervention diagnostics distinguish the roles of influence supervision, regret geometry, and selective computation. These results support using decision sensitivity to determine which future information a robot policy should compute.</p></details></div>
+    </section>
+
+    <section class="section" id="method" aria-labelledby="method-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><div><p class="eyebrow section-index">02 / The method</p><h2 id="method-title">Select first. Imagine selectively.</h2></div><p>One inference path.<br>Two complementary training signals.</p></div>
+        <figure class="architecture reveal">
+          <a href="assets/architecture.jpg" class="image-zoom" id="architecture-open" aria-label="Enlarge the DIWA architecture figure"><img src="assets/architecture.jpg" width="3300" height="2460" loading="lazy" alt="DIWA architecture: context produces 48 queries; influence scoring and a budget head select at most 12 for world decoding. Training adds paired latent interventions and measured-return regret geometry."><span class="zoom-badge"><i data-lucide="maximize-2" aria-hidden="true"></i> Full figure</span></a>
+          <figcaption><span>Figure 1</span> Original method overview. Solid arrows denote computation; dashed arrows denote supervision.</figcaption>
+        </figure>
+        <div class="method-steps">
+          <article class="reveal"><span class="step-number">01</span><h3>Score before decoding</h3><p>A lightweight estimator scores 16 slots across 3 future offsets. A context-dependent budget selects up to 12 of the 48 queries.</p><div class="formula">48 queries <span>&rarr;</span> Top-K <span>&rarr;</span> sparse futures</div></article>
+          <article class="reveal"><span class="step-number coral">02</span><h3>Learn decision influence</h3><p>Masking or swapping a future token changes action, value, and progress responses. Paired probes share noise and time.</p><div class="formula">Influence <span>&larr;</span> paired intervention response</div></article>
+          <article class="reveal"><span class="step-number violet">03</span><h3>Preserve action preferences</h3><p>Measured returns from six aligned candidate rules define regret vectors, shaping a decision-relevant latent geometry.</p><div class="formula">r<sub>m</sub>(x) = max<sub>n</sub> q<sub>n</sub>(x) &minus; q<sub>m</sub>(x)</div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section explore-section" id="explore" aria-labelledby="explore-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><div><p class="eyebrow section-index">03 / The compute tradeoff</p><h2 id="explore-title">Less imagination.<br>More deliberate computation.</h2></div><p>Moderate sparsity preserves performance.<br>Aggressive pruning has a cost.</p></div>
+        <div class="budget-workbench reveal">
+          <div class="query-panel">
+            <div class="panel-heading"><h3>Object &times; time queries</h3><span class="small-label">16 slots &middot; 3 offsets</span></div>
+            <div class="query-grid-wrap"><div class="time-labels" aria-hidden="true"><span>t + 1</span><span>t + 2</span><span>t + 3</span></div><div id="query-grid" class="query-grid" aria-label="48 queries, with the highest illustrative influence scores retained"><noscript><p>At fixed 25% budget, 12 of 48 queries are retained.</p></noscript></div></div>
+            <div class="query-legend"><span><i class="swatch teal"></i>Selected</span><span><i class="swatch gray"></i>Not decoded</span><span id="query-count">12 / 48</span></div>
+            <p class="small-note">Query rankings are illustrative, not recorded model activations.</p>
+            <div class="budget-controls" hidden>
+              <div class="control-row"><label for="budget-slider">Fixed query budget</label><output for="budget-slider" id="budget-ratio">25%</output></div>
+              <input type="range" id="budget-slider" min="0" max="4" step="1" value="2" aria-valuetext="25 percent, 12 queries">
+              <div class="range-labels" aria-hidden="true"><span>3</span><span>6</span><span>12</span><span>24</span><span>48 queries</span></div>
+              <label class="switch-label"><input type="checkbox" id="adaptive-toggle"><span class="switch-track" aria-hidden="true"></span><span>Adaptive setting</span><span class="small-label">25% ceiling</span></label>
+            </div>
+          </div>
+          <div class="budget-readout">
+            <p id="setting-label" class="eyebrow">Fixed 25% budget</p>
+            <div class="readout-numbers" aria-live="polite" aria-atomic="true"><div><output id="budget-success">73.6<span>%</span></output><span>Task success</span></div><div><output id="budget-latency">91<span> ms</span></output><span>Mean latency</span></div></div>
+            <div class="budget-chart" id="budget-chart" role="img" aria-label="Measured success-latency tradeoff: fixed budgets from 3 to 48 queries, plus the adaptive 25 percent ceiling setting"><img src="assets/budget-frontier.png" alt="Fixed budgets: 3 queries 62.9% at 61 ms; 6 queries 69.8% at 71 ms; 12 queries 73.6% at 91 ms; 24 queries 74.1% at 132 ms; 48 queries 73.4% at 213 ms. Adaptive: 73.5% at 89 ms." width="1600" height="713" loading="lazy"></div>
+            <p class="small-note" id="budget-note">Measured fixed-count settings. Lines connect observations; they do not predict intermediate performance.</p>
+          </div>
+        </div>
+        <div class="compute-footnote"><p><strong>23.7%</strong> mean query retention in the adaptive setting</p><p><strong>2.39&times;</strong> speedup relative to dense DIWA</p><a class="text-link" href="assets/budget-frontier.pdf">Original plot <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+      </div>
+    </section>
+
+    <section class="section" id="results" aria-labelledby="results-title">
+      <div class="wrap">
+        <div class="section-heading reveal"><div><p class="eyebrow section-index">04 / Measured results</p><h2 id="results-title">From simulation to physical action.</h2></div><p>Three simulation platforms.<br>Six physical task categories.</p></div>
+        <div class="results-controls" hidden><div class="segmented" role="group" aria-label="Result category"><button type="button" data-result="platforms" aria-pressed="true">Platforms</button><button type="button" data-result="ood" aria-pressed="false">Distribution shifts</button></div><div class="chart-legend"><span><i class="swatch teal"></i>DIWA</span><span><i class="swatch coral"></i>DreamVLA</span></div></div>
+        <div id="result-chart" class="result-chart reveal" role="img" aria-label="DIWA versus DreamVLA success on four platforms"><div class="fallback-comparison"><strong>DIWA / DreamVLA</strong><p>LIBERO: 84.4% / 79.6%</p><p>RoboTwin: 73.2% / 67.6%</p><p>RoboCasa: 64.4% / 59.1%</p><p>Real robot: 72.0% / 65.3%</p></div></div>
+        <p class="small-note" id="results-note">Simulation means use training seeds 42, 43, and 44. Physical results use the seed-42 checkpoint. The four-platform macro-average weights platforms equally.</p>
+        <noscript><p>OOD success: appearance 76.2% / 65.8%, background motion 74.8% / 65.0%, contact counterfactual 76.4% / 64.8% (DIWA / DreamVLA).</p></noscript>
+        <details class="data-details"><summary>All platform results <i data-lucide="plus" aria-hidden="true"></i></summary><div class="table-scroll" tabindex="0" role="region" aria-label="Platform success table"><table><caption>Task success (%). Simulation entries report mean &plusmn; sample SD across three training seeds.</caption><thead><tr><th scope="col">Method</th><th scope="col">LIBERO</th><th scope="col">RoboTwin</th><th scope="col">RoboCasa</th><th scope="col">Real robot</th><th scope="col">Macro</th></tr></thead><tbody>
+          <tr><th scope="row">Octo</th><td>73.2 &plusmn; 0.70</td><td>55.6 &plusmn; 0.92</td><td>47.2 &plusmn; 0.72</td><td>50.0</td><td>56.5</td></tr>
+          <tr><th scope="row">OpenVLA</th><td>76.0 &plusmn; 0.56</td><td>59.8 &plusmn; 0.92</td><td>50.2 &plusmn; 0.72</td><td>56.0</td><td>60.5</td></tr>
+          <tr><th scope="row">GR-1</th><td>77.4 &plusmn; 0.56</td><td>61.6 &plusmn; 0.92</td><td>53.4 &plusmn; 0.72</td><td>58.0</td><td>62.6</td></tr>
+          <tr><th scope="row">RoboDreamer</th><td>78.2 &plusmn; 0.66</td><td>64.0 &plusmn; 0.80</td><td>56.2 &plusmn; 0.72</td><td>60.0</td><td>64.6</td></tr>
+          <tr><th scope="row">WorldVLA</th><td>79.0 &plusmn; 0.56</td><td>65.8 &plusmn; 0.80</td><td>57.6 &plusmn; 0.92</td><td>62.0</td><td>66.1</td></tr>
+          <tr><th scope="row">DreamVLA</th><td>79.6 &plusmn; 0.66</td><td>67.6 &plusmn; 0.80</td><td>59.1 &plusmn; 0.81</td><td>65.3</td><td>67.9</td></tr>
+          <tr class="highlight-row"><th scope="row">DIWA</th><td>84.4 &plusmn; 0.56</td><td>73.2 &plusmn; 0.80</td><td>64.4 &plusmn; 0.80</td><td>72.0</td><td>73.5</td></tr>
+        </tbody></table></div></details>
+        <div class="result-features">
+          <article class="physical-result reveal"><p class="eyebrow">Physical manipulation</p><h3><span>216</span><span class="denominator"> / 300</span></h3><p>Successful trials with DIWA<br><span class="muted">196 / 300 with DreamVLA</span></p><div class="trial-strip" aria-label="DIWA 72 percent success"><span style="width:72%"></span></div><p class="small-note">50 trials per task; one trained checkpoint. The largest task-level gains are insertion (+10 points) and multi-stage contact (+8 points).</p></article>
+          <article class="latency-result reveal"><div class="panel-heading"><h3>Faster inference</h3><a class="icon-button" href="assets/latency.pdf" title="Open original latency plot" aria-label="Open original latency plot"><i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div><img src="assets/latency.png" width="1600" height="611" loading="lazy" alt="Mean end-to-end latency: sparse DIWA 89 ms, dense DIWA 213 ms, WorldVLA 241 ms, RoboDreamer 318 ms."><p class="small-note">Reported mean end-to-end latency. Timing uncertainty and complete run-level hardware records are unavailable.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section ablation-section" id="ablations" aria-labelledby="ablation-title"><div class="wrap">
+      <div class="section-heading reveal"><div><p class="eyebrow section-index">05 / What makes the difference</p><h2 id="ablation-title">The role of each component.</h2></div><p>Intervention supervision and regret geometry<br>complement selective computation.</p></div>
+      <div class="table-scroll reveal" tabindex="0" role="region" aria-label="Ablation results"><table class="ablation-table"><caption>Measured DIWA variants. Success and accuracy are percentages; latency is in milliseconds.</caption><thead><tr><th scope="col">Variant</th><th scope="col">Standard</th><th scope="col">OOD</th><th scope="col">CF accuracy</th><th scope="col">Latency</th></tr></thead><tbody>
+        <tr class="highlight-row"><th scope="row">DIWA <span class="table-tag">Full model</span></th><td>73.5</td><td>75.8</td><td>81.6</td><td>89</td></tr>
+        <tr><th scope="row">Without influence estimator</th><td>68.2</td><td>66.1</td><td>71.9</td><td>142</td></tr>
+        <tr><th scope="row">Without cross-episode swaps</th><td>71.4</td><td>70.2</td><td>72.8</td><td>88</td></tr>
+        <tr><th scope="row">Without regret geometry</th><td>69.3</td><td>68.2</td><td>70.6</td><td>89</td></tr>
+        <tr><th scope="row">Dense imagination</th><td>73.4</td><td>75.5</td><td>81.5</td><td>213</td></tr>
+        <tr><th scope="row">Uniform Top-K</th><td>70.6</td><td>68.9</td><td>74.3</td><td>88</td></tr>
+      </tbody></table></div>
+      <p class="small-note">Standard denotes the four-platform macro-average. CF accuracy measures decision-label correctness, not episode success. These point estimates do not establish matched retained counts across variants.</p>
+      <div class="diagnostics reveal"><div><span class="diagnostic-value">0.71</span><h3>Influence &harr; action change</h3><p>Spearman correlation<br><span class="muted">0.48 without swaps</span></p></div><div><span class="diagnostic-value">83<span>%</span></span><h3>Intervention Top-12 recall</h3><p>Against all 48 interventions<br><span class="muted">65% without swaps</span></p></div><div><span class="diagnostic-value">0.68</span><h3>Latent &harr; regret distance</h3><p>Spearman correlation<br><span class="muted">0.29 without regret geometry</span></p></div></div>
+    </div></section>
+
+    <section class="section evidence-section" id="evidence" aria-labelledby="evidence-title"><div class="wrap evidence-layout">
+      <div class="reveal"><p class="eyebrow section-index">06 / Evidence &amp; scope</p><h2 id="evidence-title">A precise view<br>of the evidence.</h2><p class="muted">The manuscript distinguishes measured performance, model sensitivity, and theoretical guarantees.</p><a class="text-link" href="assets/diwa-paper.pdf#page=18">Evaluation appendix <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+      <div class="evidence-list reveal">
+        <details open><summary>Evaluation and uncertainty <i data-lucide="plus" aria-hidden="true"></i></summary><p>Simulation uses training seeds 42, 43, and 44: 6,000 LIBERO episodes and 3,000 episodes per other simulation platform, per method. Physical evaluation uses 300 trials of the seed-42 checkpoint. No training-seed SD is assigned to the mixed four-platform aggregate.</p></details>
+        <details><summary>What the method establishes <i data-lucide="plus" aria-hidden="true"></i></summary><p>Latent interventions measure sensitivity within the learned policy, not identified environmental causal effects. Regret equivalence concerns a finite, aligned six-rule candidate bank. Correlation alone does not establish metric calibration.</p></details>
+        <details><summary>Comparison and reproducibility limits <i data-lucide="plus" aria-hidden="true"></i></summary><p>DIWA adds candidate-return and progress supervision to its DreamVLA backbone. The comparison measures the complete system. Hardware, timing repetitions, diagnostic sample records, and some variant configurations are incomplete. Dense training costs are not inferred from sparse inference savings.</p></details>
+      </div>
+    </div></section>
+
+    <section class="section resources-section" id="resources" aria-labelledby="resources-title"><div class="wrap">
+      <div class="section-heading reveal"><div><p class="eyebrow section-index">07 / Take a closer look</p><h2 id="resources-title">The paper. The source. The numbers.</h2></div><p>Materials accompanying<br>the anonymous submission.</p></div>
+      <div class="resource-grid reveal">
+        <a class="resource" href="assets/diwa-paper.pdf"><i data-lucide="file-text" aria-hidden="true"></i><h3>Read the paper</h3><p>Full manuscript and appendices</p><span>PDF &middot; 18 pages <i data-lucide="arrow-up-right" aria-hidden="true"></i></span></a>
+        <a class="resource" href="assets/diwa-source.zip" download><i data-lucide="file-archive" aria-hidden="true"></i><h3>Manuscript source</h3><p>LaTeX, figures, tables, and scripts</p><span>ZIP archive <i data-lucide="download" aria-hidden="true"></i></span></a>
+        <a class="resource" href="assets/results-ledger.json" download><i data-lucide="database" aria-hidden="true"></i><h3>Numerical ledger</h3><p>Reported results and derived statistics</p><span>JSON data <i data-lucide="download" aria-hidden="true"></i></span></a>
+      </div>
+      <div class="resource-extras"><a class="text-link" href="assets/main.tex" download>LaTeX main file <i data-lucide="download" aria-hidden="true"></i></a><a class="text-link" href="assets/reported-measurements.json" download>Reported measurements <i data-lucide="download" aria-hidden="true"></i></a><a class="text-link" href="README.md">GitHub Pages setup <i data-lucide="arrow-up-right" aria-hidden="true"></i></a></div>
+      <div class="availability" id="code-availability"><i data-lucide="code-2" aria-hidden="true"></i><div><h3>Policy code availability</h3><p>The current release contains manuscript source and numerical summaries. Training code, model weights, and rollout recordings are not included.</p></div></div>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="wrap footer-top"><a class="wordmark" href="#"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>DIWA</a><p>Decision-Influential World Abstraction<br>for VLA-WAM Policies</p><a class="icon-button" href="#" aria-label="Back to top" title="Back to top"><i data-lucide="arrow-up" aria-hidden="true"></i></a></div><div class="wrap footer-bottom"><span>Anonymous authors &middot; ICLR 2027 submission</span><span>Motion &amp; Lucide <span aria-hidden="true">/</span> <a href="THIRD_PARTY_NOTICES.md">Credits &amp; licenses</a></span></div></footer>
+
+  <dialog id="figure-dialog" aria-labelledby="figure-dialog-title"><div class="dialog-top"><h2 id="figure-dialog-title">DIWA architecture</h2><form method="dialog"><button class="icon-button" aria-label="Close figure" title="Close figure"><i data-lucide="x" aria-hidden="true"></i></button></form></div><div class="dialog-image"><img src="assets/architecture.jpg" width="3300" height="2460" alt="Full-resolution DIWA architecture, with online query selection and both training supervision branches."></div><a class="text-link" href="assets/architecture.jpg" download>Download original figure <i data-lucide="download" aria-hidden="true"></i></a></dialog>
+</body>
+</html>

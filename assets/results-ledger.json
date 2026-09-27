@@ -1,0 +1,1101 @@
+{
+  "revision_date": "2026-09-25",
+  "status": "Author-confirmed measurements; revision recomputes statistics and does not rerun experiments.",
+  "source": "reported_measurements.json",
+  "source_sha256": "fab76ced14c5556def87e9c9a1927cb70ed96f83ea8a09b25d3ce46f02fe57d6",
+  "provenance": {
+    "measured": "Platform and suite scores, seed scores, physical successes, ablations, budget measurements, mechanism diagnostics, and phase retention are author-confirmed measurements.",
+    "computed": "Means, sample SD, SEM, gains, ratios, and rounded adaptive mean query count are arithmetic derivatives.",
+    "historical_derivations": {
+      "without_influence_standard_pct": "73.5 - 5.3 = 68.2",
+      "without_influence_ood_pct": "75.8 - 9.7 = 66.1",
+      "uniform_standard_pct": "73.5 - 2.9 = 70.6",
+      "uniform_ood_pct": "75.8 - 6.9 = 68.9"
+    }
+  },
+  "evaluation": {
+    "training_seeds": [
+      42,
+      43,
+      44
+    ],
+    "physical_checkpoint_seed": 42,
+    "LIBERO_episodes_per_method": 6000,
+    "RoboTwin_episodes_per_method": 3000,
+    "RoboCasa_episodes_per_method": 3000,
+    "physical_trials_per_method": 300,
+    "simulation_episodes_per_task_per_seed": 50,
+    "aggregation": "Task means within platform, then training seeds; equal weight for four platforms. Real-robot value is a single checkpoint.",
+    "uncertainty": "Sample SD uses ddof=1 across training seeds. No synthetic uncertainty for the mixed four-platform aggregate."
+  },
+  "platform_results": [
+    {
+      "method": "Octo",
+      "LIBERO": 73.2,
+      "RoboTwin": 55.6,
+      "RoboCasa": 47.2,
+      "real_robot_pct": 50.0,
+      "macro_pct": 56.5
+    },
+    {
+      "method": "OpenVLA",
+      "LIBERO": 76.0,
+      "RoboTwin": 59.8,
+      "RoboCasa": 50.199999999999996,
+      "real_robot_pct": 56.0,
+      "macro_pct": 60.5
+    },
+    {
+      "method": "GR-1",
+      "LIBERO": 77.4,
+      "RoboTwin": 61.6,
+      "RoboCasa": 53.4,
+      "real_robot_pct": 58.0,
+      "macro_pct": 62.6
+    },
+    {
+      "method": "RoboDreamer",
+      "LIBERO": 78.2,
+      "RoboTwin": 64.0,
+      "RoboCasa": 56.199999999999996,
+      "real_robot_pct": 60.0,
+      "macro_pct": 64.6
+    },
+    {
+      "method": "WorldVLA",
+      "LIBERO": 79.0,
+      "RoboTwin": 65.8,
+      "RoboCasa": 57.6,
+      "real_robot_pct": 62.0,
+      "macro_pct": 66.1
+    },
+    {
+      "method": "DreamVLA",
+      "LIBERO": 79.60000000000001,
+      "RoboTwin": 67.6,
+      "RoboCasa": 59.06666666666667,
+      "real_robot_pct": 65.33333333333333,
+      "macro_pct": 67.9
+    },
+    {
+      "method": "DIWA",
+      "LIBERO": 84.4,
+      "RoboTwin": 73.2,
+      "RoboCasa": 64.4,
+      "real_robot_pct": 72.0,
+      "macro_pct": 73.5
+    }
+  ],
+  "training_seed_results": [
+    {
+      "method": "Octo",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        72.4,
+        73.5,
+        73.7
+      ],
+      "mean_pct": 73.2,
+      "sample_sd_pp": 0.6999999999999977,
+      "sem_pp": 0.4041451884327367
+    },
+    {
+      "method": "Octo",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        54.6,
+        55.8,
+        56.4
+      ],
+      "mean_pct": 55.6,
+      "sample_sd_pp": 0.9165151389911663,
+      "sem_pp": 0.5291502622129172
+    },
+    {
+      "method": "Octo",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        46.6,
+        47.0,
+        48.0
+      ],
+      "mean_pct": 47.2,
+      "sample_sd_pp": 0.7211102550927972,
+      "sem_pp": 0.4163331998932262
+    },
+    {
+      "method": "OpenVLA",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        75.4,
+        76.1,
+        76.5
+      ],
+      "mean_pct": 76.0,
+      "sample_sd_pp": 0.5567764362829987,
+      "sem_pp": 0.32145502536642984
+    },
+    {
+      "method": "OpenVLA",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        59.0,
+        59.6,
+        60.8
+      ],
+      "mean_pct": 59.8,
+      "sample_sd_pp": 0.9165151389911663,
+      "sem_pp": 0.5291502622129172
+    },
+    {
+      "method": "OpenVLA",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        49.4,
+        50.4,
+        50.8
+      ],
+      "mean_pct": 50.199999999999996,
+      "sample_sd_pp": 0.7211102550927972,
+      "sem_pp": 0.4163331998932262
+    },
+    {
+      "method": "GR-1",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        76.8,
+        77.5,
+        77.9
+      ],
+      "mean_pct": 77.4,
+      "sample_sd_pp": 0.5567764362830063,
+      "sem_pp": 0.3214550253664342
+    },
+    {
+      "method": "GR-1",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        60.8,
+        61.4,
+        62.6
+      ],
+      "mean_pct": 61.6,
+      "sample_sd_pp": 0.9165151389911702,
+      "sem_pp": 0.5291502622129194
+    },
+    {
+      "method": "GR-1",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        52.6,
+        53.6,
+        54.0
+      ],
+      "mean_pct": 53.4,
+      "sample_sd_pp": 0.7211102550927972,
+      "sem_pp": 0.4163331998932262
+    },
+    {
+      "method": "RoboDreamer",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        77.5,
+        78.3,
+        78.8
+      ],
+      "mean_pct": 78.2,
+      "sample_sd_pp": 0.6557438524301985,
+      "sem_pp": 0.37859388972001734
+    },
+    {
+      "method": "RoboDreamer",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        63.2,
+        64.0,
+        64.8
+      ],
+      "mean_pct": 64.0,
+      "sample_sd_pp": 0.7999999999999972,
+      "sem_pp": 0.461880215351699
+    },
+    {
+      "method": "RoboDreamer",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        55.4,
+        56.4,
+        56.8
+      ],
+      "mean_pct": 56.199999999999996,
+      "sample_sd_pp": 0.7211102550927972,
+      "sem_pp": 0.4163331998932262
+    },
+    {
+      "method": "WorldVLA",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        78.4,
+        79.1,
+        79.5
+      ],
+      "mean_pct": 79.0,
+      "sample_sd_pp": 0.5567764362829987,
+      "sem_pp": 0.32145502536642984
+    },
+    {
+      "method": "WorldVLA",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        65.0,
+        65.8,
+        66.6
+      ],
+      "mean_pct": 65.8,
+      "sample_sd_pp": 0.7999999999999972,
+      "sem_pp": 0.461880215351699
+    },
+    {
+      "method": "WorldVLA",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        56.8,
+        57.4,
+        58.6
+      ],
+      "mean_pct": 57.6,
+      "sample_sd_pp": 0.9165151389911702,
+      "sem_pp": 0.5291502622129194
+    },
+    {
+      "method": "DreamVLA",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        78.9,
+        79.7,
+        80.2
+      ],
+      "mean_pct": 79.60000000000001,
+      "sample_sd_pp": 0.6557438524301985,
+      "sem_pp": 0.37859388972001734
+    },
+    {
+      "method": "DreamVLA",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        66.8,
+        67.6,
+        68.4
+      ],
+      "mean_pct": 67.6,
+      "sample_sd_pp": 0.8000000000000043,
+      "sem_pp": 0.4618802153517031
+    },
+    {
+      "method": "DreamVLA",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        58.2,
+        59.2,
+        59.8
+      ],
+      "mean_pct": 59.06666666666667,
+      "sample_sd_pp": 0.8082903768654734,
+      "sem_pp": 0.4666666666666652
+    },
+    {
+      "method": "DIWA",
+      "platform": "LIBERO",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        83.8,
+        84.5,
+        84.9
+      ],
+      "mean_pct": 84.4,
+      "sample_sd_pp": 0.5567764362830063,
+      "sem_pp": 0.3214550253664342
+    },
+    {
+      "method": "DIWA",
+      "platform": "RoboTwin",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        72.4,
+        73.2,
+        74.0
+      ],
+      "mean_pct": 73.2,
+      "sample_sd_pp": 0.7999999999999972,
+      "sem_pp": 0.461880215351699
+    },
+    {
+      "method": "DIWA",
+      "platform": "RoboCasa",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        63.6,
+        64.4,
+        65.2
+      ],
+      "mean_pct": 64.4,
+      "sample_sd_pp": 0.8000000000000007,
+      "sem_pp": 0.46188021535170104
+    },
+    {
+      "method": "DreamVLA",
+      "platform": "OOD",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        64.4,
+        65.0,
+        66.2
+      ],
+      "mean_pct": 65.2,
+      "sample_sd_pp": 0.9165151389911671,
+      "sem_pp": 0.5291502622129176
+    },
+    {
+      "method": "DIWA",
+      "platform": "OOD",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        75.0,
+        75.8,
+        76.6
+      ],
+      "mean_pct": 75.8,
+      "sample_sd_pp": 0.7999999999999972,
+      "sem_pp": 0.461880215351699
+    }
+  ],
+  "libero_suites": [
+    {
+      "method": "Octo",
+      "Spatial": 78.4,
+      "Object": 79.0,
+      "Goal": 74.0,
+      "Long": 61.4,
+      "Mean": 73.2
+    },
+    {
+      "method": "OpenVLA",
+      "Spatial": 81.6,
+      "Object": 82.4,
+      "Goal": 76.8,
+      "Long": 63.2,
+      "Mean": 76.0
+    },
+    {
+      "method": "GR-1",
+      "Spatial": 83.0,
+      "Object": 83.6,
+      "Goal": 78.6,
+      "Long": 64.4,
+      "Mean": 77.4
+    },
+    {
+      "method": "RoboDreamer",
+      "Spatial": 83.6,
+      "Object": 84.4,
+      "Goal": 79.6,
+      "Long": 65.2,
+      "Mean": 78.2
+    },
+    {
+      "method": "WorldVLA",
+      "Spatial": 84.2,
+      "Object": 85.0,
+      "Goal": 80.2,
+      "Long": 66.6,
+      "Mean": 79.0
+    },
+    {
+      "method": "DreamVLA",
+      "Spatial": 84.8,
+      "Object": 85.4,
+      "Goal": 80.6,
+      "Long": 67.6,
+      "Mean": 79.6
+    },
+    {
+      "method": "DIWA",
+      "Spatial": 88.6,
+      "Object": 89.4,
+      "Goal": 86.0,
+      "Long": 73.6,
+      "Mean": 84.4
+    }
+  ],
+  "libero_suite_seed_results": [
+    {
+      "method": "DIWA",
+      "suite": "Spatial",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        87.8,
+        88.8,
+        89.2
+      ],
+      "mean_pct": 88.6,
+      "sample_sd_pp": 0.7211102550928002
+    },
+    {
+      "method": "DIWA",
+      "suite": "Object",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        89.0,
+        89.4,
+        89.8
+      ],
+      "mean_pct": 89.4,
+      "sample_sd_pp": 0.3999999999999986
+    },
+    {
+      "method": "DIWA",
+      "suite": "Goal",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        85.4,
+        86.2,
+        86.4
+      ],
+      "mean_pct": 86.0,
+      "sample_sd_pp": 0.5291502622129176
+    },
+    {
+      "method": "DIWA",
+      "suite": "Long",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        73.0,
+        73.6,
+        74.2
+      ],
+      "mean_pct": 73.6,
+      "sample_sd_pp": 0.6000000000000014
+    },
+    {
+      "method": "DreamVLA",
+      "suite": "Spatial",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        84.0,
+        84.8,
+        85.6
+      ],
+      "mean_pct": 84.8,
+      "sample_sd_pp": 0.7999999999999972
+    },
+    {
+      "method": "DreamVLA",
+      "suite": "Object",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        84.8,
+        85.6,
+        85.8
+      ],
+      "mean_pct": 85.39999999999999,
+      "sample_sd_pp": 0.5291502622129176
+    },
+    {
+      "method": "DreamVLA",
+      "suite": "Goal",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        79.8,
+        80.8,
+        81.2
+      ],
+      "mean_pct": 80.6,
+      "sample_sd_pp": 0.7211102550928002
+    },
+    {
+      "method": "DreamVLA",
+      "suite": "Long",
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "measured_success_pct": [
+        67.0,
+        67.6,
+        68.2
+      ],
+      "mean_pct": 67.6,
+      "sample_sd_pp": 0.6000000000000014
+    }
+  ],
+  "ood_conditions": [
+    {
+      "condition": "Appearance",
+      "DreamVLA": 65.8,
+      "DIWA": 76.2,
+      "gain_pp": 10.4
+    },
+    {
+      "condition": "Background motion",
+      "DreamVLA": 65.0,
+      "DIWA": 74.8,
+      "gain_pp": 9.8
+    },
+    {
+      "condition": "Contact counterfactual",
+      "DreamVLA": 64.8,
+      "DIWA": 76.4,
+      "gain_pp": 11.6
+    },
+    {
+      "condition": "Equal-weight mean",
+      "DreamVLA": 65.2,
+      "DIWA": 75.8,
+      "gain_pp": 10.6
+    }
+  ],
+  "real_robot_tasks": [
+    {
+      "task": "Grasping",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 40,
+      "DIWA_successes": 42,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          66.9628940677746,
+          88.75624998422389
+        ],
+        "DIWA": [
+          71.485783936965,
+          91.6625793219666
+        ]
+      }
+    },
+    {
+      "task": "Precise placement",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 35,
+      "DIWA_successes": 38,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          56.249649535546595,
+          80.89644649911905
+        ],
+        "DIWA": [
+          62.58731624205709,
+          85.70260860300827
+        ]
+      }
+    },
+    {
+      "task": "Drawer interaction",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 33,
+      "DIWA_successes": 36,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          52.15382605023261,
+          77.56305077749991
+        ],
+        "DIWA": [
+          58.33487630404345,
+          82.52582933408877
+        ]
+      }
+    },
+    {
+      "task": "Insertion",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 26,
+      "DIWA_successes": 31,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          38.51174489004462,
+          65.20286471342195
+        ],
+        "DIWA": [
+          48.150446930992985,
+          74.1372106898064
+        ]
+      }
+    },
+    {
+      "task": "Container manipulation",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 34,
+      "DIWA_successes": 37,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          54.189702691855935,
+          79.24178373934315
+        ],
+        "DIWA": [
+          60.44684273515117,
+          84.12847250644762
+        ]
+      }
+    },
+    {
+      "task": "Multi-stage contact",
+      "trials_per_method": 50,
+      "DreamVLA_successes": 28,
+      "DIWA_successes": 32,
+      "within_task_wilson95_pct": {
+        "DreamVLA": [
+          42.30602802165687,
+          68.83780078874283
+        ],
+        "DIWA": [
+          50.1410168761127,
+          75.86125034815325
+        ]
+      }
+    }
+  ],
+  "real_robot_totals": {
+    "trials_per_method": 300,
+    "DreamVLA": 196,
+    "DIWA": 216
+  },
+  "ablations": [
+    {
+      "variant": "DIWA",
+      "standard_pct": 73.5,
+      "ood_pct": 75.8,
+      "cf_accuracy_pct": 81.6,
+      "latency_ms": 89.0
+    },
+    {
+      "variant": "Without influence estimator",
+      "standard_pct": 68.2,
+      "ood_pct": 66.1,
+      "cf_accuracy_pct": 71.9,
+      "latency_ms": 142.0
+    },
+    {
+      "variant": "Without cross-episode swaps",
+      "standard_pct": 71.4,
+      "ood_pct": 70.2,
+      "cf_accuracy_pct": 72.8,
+      "latency_ms": 88.0
+    },
+    {
+      "variant": "Without regret geometry",
+      "standard_pct": 69.3,
+      "ood_pct": 68.2,
+      "cf_accuracy_pct": 70.6,
+      "latency_ms": 89.0
+    },
+    {
+      "variant": "Dense imagination",
+      "standard_pct": 73.4,
+      "ood_pct": 75.5,
+      "cf_accuracy_pct": 81.5,
+      "latency_ms": 213.0
+    },
+    {
+      "variant": "Uniform Top-$K$",
+      "standard_pct": 70.6,
+      "ood_pct": 68.9,
+      "cf_accuracy_pct": 74.3,
+      "latency_ms": 88.0
+    }
+  ],
+  "fixed_budget": [
+    {
+      "budget_pct": 100.0,
+      "selected_queries": 48,
+      "standard_success_pct": 73.4,
+      "latency_ms": 213.0
+    },
+    {
+      "budget_pct": 50.0,
+      "selected_queries": 24,
+      "standard_success_pct": 74.1,
+      "latency_ms": 132.0
+    },
+    {
+      "budget_pct": 25.0,
+      "selected_queries": 12,
+      "standard_success_pct": 73.6,
+      "latency_ms": 91.0
+    },
+    {
+      "budget_pct": 12.5,
+      "selected_queries": 6,
+      "standard_success_pct": 69.8,
+      "latency_ms": 71.0
+    },
+    {
+      "budget_pct": 6.25,
+      "selected_queries": 3,
+      "standard_success_pct": 62.9,
+      "latency_ms": 61.0
+    }
+  ],
+  "adaptive_budget": {
+    "maximum_budget_pct": 25,
+    "mean_selected_pct": 23.7,
+    "approximate_mean_queries_from_rounded_ratio": 11.376,
+    "standard_success_pct": 73.5,
+    "latency_ms": 89.0
+  },
+  "mechanism_diagnostics": [
+    {
+      "metric": "Influence--action change Spearman",
+      "DIWA": 0.71,
+      "control_value": 0.48,
+      "control": "Without swaps"
+    },
+    {
+      "metric": "Intervention Top-12 recall",
+      "DIWA": 83.0,
+      "control_value": 65.0,
+      "control": "Without swaps"
+    },
+    {
+      "metric": "Latent--regret distance Spearman",
+      "DIWA": 0.68,
+      "control_value": 0.29,
+      "control": "Without regret"
+    }
+  ],
+  "latency_ms": {
+    "DIWA (sparse)": 89,
+    "DIWA (dense)": 213,
+    "WorldVLA": 241,
+    "RoboDreamer": 318
+  },
+  "derived": {
+    "latency_reduction_vs_dense_pct": 58.21596244131455,
+    "speedup_vs_dense": 2.393258426966292,
+    "latency_reduction_vs_worldvla_pct": 63.07053941908713,
+    "speedup_vs_worldvla": 2.707865168539326,
+    "latency_reduction_vs_robodreamer_pct": 72.0125786163522,
+    "physical_gain_pp": 6.666666666666667,
+    "future_query_reduction_pct": 76.3,
+    "theoretical_uniform_top12_recall_pct": 25.0
+  },
+  "separate_phase_measurements": {
+    "free_space_pct": 15,
+    "contact_pct": 31,
+    "manuscript_inclusion": false,
+    "note": "Measured phase values retained in the internal ledger, excluded from the revised manuscript because run configuration and denominator are unspecified. Contact 31% cannot be assigned to the same 48-query hard-25%-ceiling configuration."
+  },
+  "remaining_run_metadata": [
+    "GPU model and actual device count",
+    "Timing boundaries, warm-up, repetitions, batch size, precision, and software versions",
+    "Selected task IDs and trajectory-level splits",
+    "OOD and CF label definitions, counts, and pairing",
+    "Physical robot, cameras, low-level control, and candidate-return collection protocol",
+    "142 ms ablation configuration and uniform Top-K index policy",
+    "Budget sweep checkpoint/retraining mapping",
+    "Phase-run ceiling and denominator",
+    "Mechanism diagnostic sample counts and sampling protocol",
+    "Actual RGB/video/heatmap files"
+  ],
+  "arithmetic_checks": {
+    "passed": 160,
+    "details": [
+      "Octo/LIBERO/mean",
+      "Octo/LIBERO/sd",
+      "Octo/LIBERO/sem",
+      "Octo/RoboTwin/mean",
+      "Octo/RoboTwin/sd",
+      "Octo/RoboTwin/sem",
+      "Octo/RoboCasa/mean",
+      "Octo/RoboCasa/sd",
+      "Octo/RoboCasa/sem",
+      "OpenVLA/LIBERO/mean",
+      "OpenVLA/LIBERO/sd",
+      "OpenVLA/LIBERO/sem",
+      "OpenVLA/RoboTwin/mean",
+      "OpenVLA/RoboTwin/sd",
+      "OpenVLA/RoboTwin/sem",
+      "OpenVLA/RoboCasa/mean",
+      "OpenVLA/RoboCasa/sd",
+      "OpenVLA/RoboCasa/sem",
+      "GR-1/LIBERO/mean",
+      "GR-1/LIBERO/sd",
+      "GR-1/LIBERO/sem",
+      "GR-1/RoboTwin/mean",
+      "GR-1/RoboTwin/sd",
+      "GR-1/RoboTwin/sem",
+      "GR-1/RoboCasa/mean",
+      "GR-1/RoboCasa/sd",
+      "GR-1/RoboCasa/sem",
+      "RoboDreamer/LIBERO/mean",
+      "RoboDreamer/LIBERO/sd",
+      "RoboDreamer/LIBERO/sem",
+      "RoboDreamer/RoboTwin/mean",
+      "RoboDreamer/RoboTwin/sd",
+      "RoboDreamer/RoboTwin/sem",
+      "RoboDreamer/RoboCasa/mean",
+      "RoboDreamer/RoboCasa/sd",
+      "RoboDreamer/RoboCasa/sem",
+      "WorldVLA/LIBERO/mean",
+      "WorldVLA/LIBERO/sd",
+      "WorldVLA/LIBERO/sem",
+      "WorldVLA/RoboTwin/mean",
+      "WorldVLA/RoboTwin/sd",
+      "WorldVLA/RoboTwin/sem",
+      "WorldVLA/RoboCasa/mean",
+      "WorldVLA/RoboCasa/sd",
+      "WorldVLA/RoboCasa/sem",
+      "DreamVLA/LIBERO/mean",
+      "DreamVLA/LIBERO/sd",
+      "DreamVLA/LIBERO/sem",
+      "DreamVLA/RoboTwin/mean",
+      "DreamVLA/RoboTwin/sd",
+      "DreamVLA/RoboTwin/sem",
+      "DreamVLA/RoboCasa/mean",
+      "DreamVLA/RoboCasa/sd",
+      "DreamVLA/RoboCasa/sem",
+      "DIWA/LIBERO/mean",
+      "DIWA/LIBERO/sd",
+      "DIWA/LIBERO/sem",
+      "DIWA/RoboTwin/mean",
+      "DIWA/RoboTwin/sd",
+      "DIWA/RoboTwin/sem",
+      "DIWA/RoboCasa/mean",
+      "DIWA/RoboCasa/sd",
+      "DIWA/RoboCasa/sem",
+      "DreamVLA/OOD/mean",
+      "DreamVLA/OOD/sd",
+      "DreamVLA/OOD/sem",
+      "DIWA/OOD/mean",
+      "DIWA/OOD/sd",
+      "DIWA/OOD/sem",
+      "Grasping/DreamVLA rate",
+      "Grasping/DIWA rate",
+      "Precise placement/DreamVLA rate",
+      "Precise placement/DIWA rate",
+      "Drawer interaction/DreamVLA rate",
+      "Drawer interaction/DIWA rate",
+      "Insertion/DreamVLA rate",
+      "Insertion/DIWA rate",
+      "Container manipulation/DreamVLA rate",
+      "Container manipulation/DIWA rate",
+      "Multi-stage contact/DreamVLA rate",
+      "Multi-stage contact/DIWA rate",
+      "DreamVLA physical successes",
+      "DIWA physical successes",
+      "physical trial count",
+      "Octo/main/LIBERO",
+      "Octo/main/RoboTwin",
+      "Octo/main/RoboCasa",
+      "Octo/main/Real",
+      "Octo/main/Macro",
+      "OpenVLA/main/LIBERO",
+      "OpenVLA/main/RoboTwin",
+      "OpenVLA/main/RoboCasa",
+      "OpenVLA/main/Real",
+      "OpenVLA/main/Macro",
+      "GR-1/main/LIBERO",
+      "GR-1/main/RoboTwin",
+      "GR-1/main/RoboCasa",
+      "GR-1/main/Real",
+      "GR-1/main/Macro",
+      "RoboDreamer/main/LIBERO",
+      "RoboDreamer/main/RoboTwin",
+      "RoboDreamer/main/RoboCasa",
+      "RoboDreamer/main/Real",
+      "RoboDreamer/main/Macro",
+      "WorldVLA/main/LIBERO",
+      "WorldVLA/main/RoboTwin",
+      "WorldVLA/main/RoboCasa",
+      "WorldVLA/main/Real",
+      "WorldVLA/main/Macro",
+      "DreamVLA/main/LIBERO",
+      "DreamVLA/main/RoboTwin",
+      "DreamVLA/main/RoboCasa",
+      "DreamVLA/main/Real",
+      "DreamVLA/main/Macro",
+      "DIWA/main/LIBERO",
+      "DIWA/main/RoboTwin",
+      "DIWA/main/RoboCasa",
+      "DIWA/main/Real",
+      "DIWA/main/Macro",
+      "Octo/LIBERO suite mean",
+      "Octo/LIBERO suite-seed agreement",
+      "OpenVLA/LIBERO suite mean",
+      "OpenVLA/LIBERO suite-seed agreement",
+      "GR-1/LIBERO suite mean",
+      "GR-1/LIBERO suite-seed agreement",
+      "RoboDreamer/LIBERO suite mean",
+      "RoboDreamer/LIBERO suite-seed agreement",
+      "WorldVLA/LIBERO suite mean",
+      "WorldVLA/LIBERO suite-seed agreement",
+      "DreamVLA/LIBERO suite mean",
+      "DreamVLA/LIBERO suite-seed agreement",
+      "DIWA/LIBERO suite mean",
+      "DIWA/LIBERO suite-seed agreement",
+      "DIWA/Spatial/seed mean",
+      "DIWA/Object/seed mean",
+      "DIWA/Goal/seed mean",
+      "DIWA/Long/seed mean",
+      "DreamVLA/Spatial/seed mean",
+      "DreamVLA/Object/seed mean",
+      "DreamVLA/Goal/seed mean",
+      "DreamVLA/Long/seed mean",
+      "DreamVLA/seed 42/suite agreement",
+      "DreamVLA/seed 43/suite agreement",
+      "DreamVLA/seed 44/suite agreement",
+      "DIWA/seed 42/suite agreement",
+      "DIWA/seed 43/suite agreement",
+      "DIWA/seed 44/suite agreement",
+      "Appearance/OOD gain",
+      "Background motion/OOD gain",
+      "Contact counterfactual/OOD gain",
+      "Equal-weight mean/OOD gain",
+      "DreamVLA/OOD condition mean",
+      "DreamVLA/OOD seed agreement",
+      "DIWA/OOD condition mean",
+      "DIWA/OOD seed agreement",
+      "fixed 100% query count",
+      "fixed 50% query count",
+      "fixed 25% query count",
+      "fixed 12.5% query count",
+      "fixed 6.25% query count"
+    ]
+  }
+}
