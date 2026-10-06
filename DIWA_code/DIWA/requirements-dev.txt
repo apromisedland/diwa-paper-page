@@ -1,5 +1,0 @@
--r requirements.txt
-pytest>=7
-h5py>=3.11
-PyYAML>=6
-scipy>=1.10

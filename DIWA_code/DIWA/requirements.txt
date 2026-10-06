@@ -1,7 +1,0 @@
-# Minimal feature-policy / CPU example dependencies.
-# Exact versions exercised locally are in requirements-cpu-tested.txt.
-torch>=2.2,<3
-torchvision>=0.17,<1
-numpy>=1.26,<3
-timm>=0.9.16,<1.1
-Pillow>=9

@@ -2,8 +2,6 @@
 
 A self-contained, English research page for **DIWA: Decision-Influential World Abstraction for VLA-WAM Policies**, an anonymous ICLR 2027 submission. The site uses plain HTML, CSS, and JavaScript. No build step, CDN, external fonts, backend, or API key is required.
 
-The reference implementation is available in [`DIWA_code/DIWA`](DIWA_code/DIWA/README.md). It includes the DIWA modules, DreamVLA integration, data-processing utilities, run scripts, and tests; model weights, raw trajectories, and robot environments are not included.
-
 ## Publish with GitHub Pages
 
 1. Push the contents of this directory to a GitHub repository, including `index.html`, `styles.css`, `script.js`, `.nojekyll`, and `assets/`.
@@ -37,7 +35,6 @@ Then visit `http://localhost:4173`. Use `node scripts/serve.mjs 4174` if the por
 - `assets/architecture.jpg`: original manuscript figure.
 - `assets/latency.png` and `assets/budget-frontier.png`: rasterized versions of the corresponding original PDF plots, also included.
 - `assets/vendor/`: local Motion and Lucide distributions and licenses. See [third-party notices](THIRD_PARTY_NOTICES.md).
-- `DIWA_code/DIWA/`: PyTorch reference implementation and implementation documentation.
 
 To refresh copies and browser data after a manuscript update:
 
@@ -59,7 +56,7 @@ Keep the static HTML tables and headline figures aligned with the updated ledger
 
 The five fixed-budget controls display measured operating points only: 3, 6, 12, 24, and 48 queries. The adaptive setting is separate: a 12-query ceiling, 23.7% mean retention, 73.5% success, and 89 ms latency. The illustrated adaptive grid shows the ceiling, not a claim that every context uses 12 queries. Query rankings and moving packets are schematic; this site does not execute a trained policy or display recorded model activations.
 
-Platform means, OOD success, physical counts, and counterfactual decision-label accuracy have distinct statistical meanings. The evidence section records those distinctions and the manuscript's reporting limits. The code package does not include policy weights, raw trajectories, or rollout videos.
+Platform means, OOD success, physical counts, and counterfactual decision-label accuracy have distinct statistical meanings. The evidence section records those distinctions and the manuscript's reporting limits. The supplied materials do not include policy training code, weights, or rollout videos.
 
 ## Verification
 
