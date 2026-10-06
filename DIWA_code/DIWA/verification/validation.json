@@ -1,0 +1,123 @@
+{
+  "verification_date": "2026-10-06",
+  "unit_tests": {
+    "passed": 114,
+    "failed": 0,
+    "command": "python -m pytest -q tests",
+    "scope": "CPU unit and feature-workflow integration tests"
+  },
+  "cli_prediction": {
+    "passed": true,
+    "action_shape": [
+      1,
+      3,
+      7
+    ],
+    "expanded_queries": 12
+  },
+  "strict_data_check": {
+    "passed": true,
+    "synthetic_training_input_rejected": true,
+    "candidate_rule_identity_required": true,
+    "candidate_rule_reordering_rejected": true
+  },
+  "checkpoint_compatibility_check": {
+    "passed": true,
+    "missing_trainable_state_rejected": true,
+    "unknown_or_wrong_shape_state_rejected": true,
+    "architecture_argument_mismatch_rejected": true,
+    "frozen_base_signature_mismatch_rejected": true,
+    "scalar_frozen_parameter_supported": true,
+    "pretrained_coverage_checked": true,
+    "resume_schedule_mismatch_rejected": true,
+    "per_rank_rng_round_trip": true,
+    "atomic_checkpoint_write": true,
+    "checkpoint_schema_version": 4,
+    "resume_phase_checked": true,
+    "feature_checkpoint_format_version": 3,
+    "old_feature_training_method_resume_rejected": true
+  },
+  "runtime_safety_check": {
+    "passed": true,
+    "dinosiglip_vision_branch_supported": true,
+    "configurable_action_and_state_dimensions": true,
+    "zero_valued_ensemble_actions_retained": true,
+    "trajectory_logging_reconstruction": true,
+    "cross_adapter_candidate_rule_order_required": true,
+    "epoch_worker_restart_for_reproducible_resume": true,
+    "actual_dataloader_batch_count": true,
+    "terminal_supervision_retained": true,
+    "missing_future_lookahead_masked": true,
+    "flow_sampling_steps_exact": true
+  },
+  "measured_rollout_isolation_check": {
+    "passed": true,
+    "environment_reset_before_each_candidate": true,
+    "canonical_candidate_rule_order_required": true
+  },
+  "entrypoint_guard_check": {
+    "evaluation_checkpoint_required": true,
+    "private_real_dataset_adapter_explicit": true
+  },
+  "metrics_json_check": {
+    "passed": true,
+    "strict_json": true,
+    "undefined_tokens_per_success": null,
+    "ood_retention_ratio_emitted": false
+  },
+  "distributed_profile_aggregation_test": "passed with per-rank warmup exclusion",
+  "cpu_smoke": {
+    "passed": true,
+    "micro_steps": 16,
+    "optimizer_steps": 8,
+    "checkpoint_reload_max_difference": 0.0,
+    "training_expanded_queries": 48,
+    "inference_expanded_queries": 12,
+    "last_mask_gradient_norm": 0.0007242483552545309,
+    "mask_parameter_max_change": 0.00045028235763311386
+  },
+  "ruff_check": "all Python sources pass E9/F63/F7/F82; DIWA modules, CLI, lightweight utilities, converter, modified export adapters and tests pass E4/E7/E9/F; upstream integration files are checked for fatal errors",
+  "python_syntax_check": "all Python sources parsed successfully",
+  "launch_script_syntax_check": "passed for LIBERO DIWA train and eval scripts",
+  "archive_verification": {
+    "passed": true,
+    "manifest_source_files": 163,
+    "archive_files_including_manifest": 164,
+    "tests_from_extracted_archive": true,
+    "cpu_smoke_from_extracted_archive": true,
+    "archive_membership_and_hashes_match_manifest": true
+  },
+  "paper_project_compile": {
+    "passed": true,
+    "pages": 18,
+    "undefined_references": 0,
+    "undefined_citations": 0,
+    "layout_warnings": 0,
+    "command": "latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex",
+    "verification_date": "2026-10-05",
+    "rerun_for_current_code_review": false
+  },
+  "complete_gpu_training_executed": false,
+  "simulator_success_benchmarks_executed": false,
+  "physical_robot_trials_executed": false,
+  "review_regression_check": {
+    "passed": true,
+    "added_test_cases": 20,
+    "native_libero_rewards_dones_and_external_sidecar": true,
+    "partial_diwa_annotations_still_rejected": true,
+    "future_tracks_do_not_change_online_policy": true,
+    "offline_nan_q_does_not_reach_critic_or_regret": true,
+    "offline_influence_excludes_value_progress": true,
+    "known_simulator_cannot_opt_out_of_measured_q": true,
+    "same_task_different_episode_pairs_per_rank": true,
+    "libero_pretrain_and_finetune_factories_use_pair_sampler": true,
+    "paired_loader_actual_batch_count": true,
+    "strict_core_rejects_unpaired_batch": true,
+    "mask_token_receives_gradient_and_updates": true,
+    "mask_centroid_excludes_padding": true,
+    "mask_targets_and_influence_targets_detached": true,
+    "image_forward_scope": "real_DIWA_methods_and_core_with_preencoded_causal_tokens_no_vision_or_CLIP_download",
+    "distributed_scope": "CPU_simulated_sampler_ranks_not_actual_multi_GPU_training",
+    "new_mask_calibration_historical_experiment_use": "not_asserted"
+  }
+}

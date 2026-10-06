@@ -1,0 +1,80 @@
+{
+  "description": "CPU functional verification only: random tensor fixtures, small hidden/action widths and accelerated schedules. Not a benchmark configuration.",
+  "core": {
+    "hidden_dim": 32,
+    "num_heads": 4,
+    "action_pred_steps": 3,
+    "action_dim": 7,
+    "continuous_action_dim": 6,
+    "horizon": 3,
+    "num_slots": 16,
+    "world_layers": 1,
+    "fusion_layers": 1,
+    "dropout": 0.0,
+    "influence_temperature": 0.25,
+    "counterfactual_samples": 4,
+    "entropy_weight": 0.01,
+    "sam_feature_dim": 8,
+    "slot_iterations": 3,
+    "adaptive_budget": true,
+    "minimum_budget_ratio": 0.0625,
+    "budget_threshold": 0.5,
+    "critic_discount": 0.99,
+    "regret_candidates": 6,
+    "contrastive_margin": 0.5,
+    "require_measured_supervision": true
+  },
+  "action_head": {
+    "kind": "diffusion",
+    "model_type": "DiT-Debug",
+    "diffusion_steps": 10,
+    "sampling_steps": 5,
+    "training_repeats": 1,
+    "cfg_scale": 1.5
+  },
+  "influence": {
+    "num_probes": 4,
+    "covariance_weight": 0.1,
+    "policy_weight": 1.0,
+    "value_weight": 1.0,
+    "progress_weight": 1.0
+  },
+  "training": {
+    "seed": 42,
+    "epochs": 2,
+    "batch_size": 2,
+    "gradient_accumulation": 2,
+    "sequence_length": 2,
+    "window_stride": 2,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "warmup_epochs": 0,
+    "max_grad_norm": 1.0,
+    "target_tau": 0.005,
+    "budget_ratio": 0.25,
+    "budget_warmup": 0,
+    "budget_anneal": 0,
+    "teacher_forcing": 0,
+    "critic_start": 0,
+    "influence_start": 0,
+    "regret_start": 0
+  },
+  "loss_weights": {
+    "proposal": 0.1,
+    "future": 0.1,
+    "influence": 0.1,
+    "budget": 0.001,
+    "critic": 0.1,
+    "progress": 0.05,
+    "regret": 0.01,
+    "contrastive": 0.01,
+    "mask": 0.01
+  },
+  "implementation_extensions": {
+    "introduced_on": "2026-10-06",
+    "mask_calibration": "smooth_l1_to_detached_valid_world_token_centroid",
+    "mask_calibration_historical_experiment_use": "not_asserted",
+    "paired_sampling": "each_anchor_plus_same_task_different_episode_partner",
+    "notes": "See docs/REVIEW_FIXES.md; implementation repair choices are not historical experiment records."
+  }
+}

@@ -1,0 +1,25 @@
+# Full DreamVLA integration: use a separate Python 3.10 / simulator environment.
+# Install the matching torch / torchvision pair from docs/LIBERO_INSTALL.md first.
+# This upstream-oriented GPU environment was not executed in this delivery.
+numpy==1.23.1
+timm==0.9.16
+h5py==3.11.0
+transformers==4.40.2
+ftfy==6.2.0
+regex
+tqdm
+matplotlib<3.9
+scipy<1.12
+Pillow
+einops
+einops_exts
+omegaconf==2.3.0
+hydra-core==1.3.2
+moviepy==1.0.3
+opencv-python<4.9
+termcolor
+PyYAML
+wandb
+tensorboard
+packaging==24.0
+git+https://github.com/openai/CLIP.git
